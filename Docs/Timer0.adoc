@@ -30,7 +30,7 @@ Once the header file has been included, the timer can be initialised as follows:
 
 [source,cpp]
 ----
-#include <Timer0.h>
+#include <timer0.h>
 
 using namespace AVRAssist;
 
@@ -62,6 +62,7 @@ void initialise(const uint8_t timerMode,
 ----
 
 ==== Timer Modes
+
 
 ==== Clock Sources
 
