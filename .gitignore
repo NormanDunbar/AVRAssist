@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# Documents
+*.pdf
+!AVRAssist.pdf

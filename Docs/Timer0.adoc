@@ -1,0 +1,73 @@
+== AVRAssist - Timer 0
+
+This AVR Assistant allows the simple setup and configuration of Timer/Counter 0 on your AVR (specifically, ATmega328) micro controller. This code works in the Arduino IDE or free standing for use with some other development system, such as PlatformIO. It has not been tested on other micro controllers. (Although he ATMega168 should work.)
+
+To use the assistant, you must include the `timer0.h` header file:
+
+[source, c++]
+----
+#include "timer0.h"
+----
+
+Following this, you may, optionally, `use` the `AVRAssist` namespace:
+
+[source, cpp]
+----
+using namespace AVRAssist;
+----
+
+[WARNING]
+====
+The spelling of `AVRAssist` must be as shown above.
+====
+
+If you choose not to do this, you must prefix everything with `AVRAssist::` or the code will not work.
+
+
+=== Timer Initialisation
+
+Once the header file has been included, the timer can be initialised as follows:
+
+[source,cpp]
+----
+#include <Timer0.h>
+
+using namespace AVRAssist;
+
+...
+
+Timer0::initialise(Timer0::MODE_FAST_PWM_255,           // Timer mode;
+                   Timer0::CLK_PRESCALE_64,             // Clock source;
+                   Timer0::OCOX_DISCONNECTED,           // OCOA, OCOB actions on compare match;
+                   Timer0::INT_COMP_MATCH_A |           // Interrupt(s) to enable;
+                        Timer0::INT_COMP_MATCH_A,
+                   Timer0::FORCE_COMPARE_NONE           // Force Compare required?
+                  );
+...
+----
+
+The above sets Timer/Counter 0 into fast PWM mode with `TOP` = to 255, with a clock prescaler of 64. When `OCR0A` and `OCR0B` match `TCNT0` nothing happens to pins `OCOA` or `OCOB` but an interrupt will be fired when the comparison happens to match. 
+
+==== Initialisation Function
+
+The header file exposes a single `initialise` function which is defined as follows:
+
+[source, cpp]
+----
+void initialise(const uint8_t timerMode, 
+                const clockSource_t clockSource, 
+                const compareMatch_t compareMatch = OCOX_DISCONNECTED, 
+                const interrupt_t enableInterrupts = INT_NONE
+                const forceCompare_t forceCompare = FORCE_COMPARE_NONE) {
+----
+
+==== Timer Modes
+
+==== Clock Sources
+
+==== Compare Match Options
+
+==== Interrupts
+
+==== Force Compare Options
+
