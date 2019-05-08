@@ -9,7 +9,7 @@ _AVRAssist_ is a set of header files which can be `#include`d in your AVR C++ co
 * The two force compare options are not required.
 
 ````
-#include <Timer0.h>
+#include <timer0.h>
 
 using namespace AVRAssist;
 
