@@ -39,7 +39,7 @@ namespace AVRAssist {
             MODE_PC_PWM_OCR1A,                      // Mode 11: Phase Correct PWM, TOP = OCR1A.
             MODE_CTC_ICR1,                          // Mode 12: CTC, TOP = ICR1.
             MODE_RESERVED_13,                       // Mode 13: Reserved, do not use.
-            MODE_FAST_PWM_1CR1                      // Mode 14: Fast PWM, TOP = ICR1.
+            MODE_FAST_PWM_1CR1,                     // Mode 14: Fast PWM, TOP = ICR1.
             MODE_FAST_PWM_OCR1A                     // Mode 15: Fast PWM, TOP = OCR1A.
         };
         
@@ -50,7 +50,7 @@ namespace AVRAssist {
         // These bits end up in WGM11 & WGM10 in TCCR1A and WGM13 & WGM02 in 
         // TCCR1B depending on the timer mode chosen from the above.
         //------------------------------------------------------------------
-        const byte timerModes[16][2] = {                    // [n][0] = TCCR1A, [n][1] = TCCR1B
+        const uint8_t timerModes[16][2] = {                    // [n][0] = TCCR1A, [n][1] = TCCR1B
             {0, 0},                                         // Normal, TOP = 65,535
             {(1 << WGM10), 0},                              // Phase Correct PWM - 8 bit, TOP = 255
             {(1 << WGM11), 0},                              // Phase Correct PWM - 9 bit, TOP = 511
@@ -73,13 +73,13 @@ namespace AVRAssist {
         // CLOCK SOURCES. Note that external source, pin 'T1' is 
         // physical pin 11, Arduino pin D5 or AVR pin PD5.
         //------------------------------------------------------------------
-        enum clock_source_t {
+        enum clockSource_t {
             CLK_DISABLED,                           // No clock running
             CLK_PRESCALE_1,                         // Prescaler = divide by 1
             CLK_PRESCALE_8,                         // Prescaler = divide by 8
             CLK_PRESCALE_64,                        // Prescaler = divide by 64
             CLK_PRESCALE_256,                       // Prescaler = divide by 256
-            CLK_PRESCALE_1024                       // Prescaler = divide by 1024
+            CLK_PRESCALE_1024,                      // Prescaler = divide by 1024
             CLK_T1_FALLING,                         // External pin T0, falling edge
             CLK_T1_RISING                           // External pin T0, rising edge
         };
@@ -155,7 +155,7 @@ namespace AVRAssist {
 
             // Can't use OC1B_TOGGLE or FORCE COMPARE in anything but NORMAL and CTC modes.
             if ((timerMode != MODE_NORMAL && timerMode != MODE_CTC_OCR1A && timerMode != MODE_CTC_ICR1) && 
-                (compareMatch == OC1B_TOGGLE || (forceCompare & FORCE_COMPARE_MATCH_A) || (forceCompare & FORCE_COMPARE_MATCH_B)) {
+                (compareMatch == OC1B_TOGGLE || (forceCompare & FORCE_COMPARE_MATCH_A) || (forceCompare & FORCE_COMPARE_MATCH_B))) {
                 return;
             }
 
