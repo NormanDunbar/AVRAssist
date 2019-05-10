@@ -105,6 +105,7 @@ namespace AVRAssist {
         //------------------------------------------------------------------
         enum interrupt_t {
             INT_NONE = 0,
+            INT_CAPTURE = (1 << ICIE1),
             INT_COMP_MATCH_A = (1 << OCIE1A),
             INT_COMP_MATCH_B = (1 << OCIE1B),
             INT_OVERFLOW = (1 << TOIE1)
