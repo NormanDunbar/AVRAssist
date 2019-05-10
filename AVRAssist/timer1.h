@@ -50,7 +50,7 @@ namespace AVRAssist {
         // These bits end up in WGM11 & WGM10 in TCCR1A and WGM13 & WGM02 in 
         // TCCR1B depending on the timer mode chosen from the above.
         //------------------------------------------------------------------
-        const uint8_t timerModes[16][2] = {                    // [n][0] = TCCR1A, [n][1] = TCCR1B
+        const uint8_t timerModes[16][2] = {                 // [n][0] = TCCR1A, [n][1] = TCCR1B
             {0, 0},                                         // Normal, TOP = 65,535
             {(1 << WGM10), 0},                              // Phase Correct PWM - 8 bit, TOP = 255
             {(1 << WGM11), 0},                              // Phase Correct PWM - 9 bit, TOP = 511
