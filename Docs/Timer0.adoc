@@ -40,7 +40,7 @@ Timer0::initialise(Timer0::MODE_FAST_PWM_255,           // Timer mode;
                    Timer0::CLK_PRESCALE_64,             // Clock source;
                    Timer0::OCOX_DISCONNECTED,           // OCOA, OCOB actions on compare match;
                    Timer0::INT_COMPARE_MATCH_A |        // Interrupt(s) to enable;
-                        Timer0::INT_COMPARE_MATCH_A,
+                        Timer0::INT_COMPARE_MATCH_B,
                    Timer0::FORCE_COMPARE_NONE           // Force Compare required?
                   );
 ...
@@ -89,7 +89,7 @@ Timer0::initialise(Timer0::MODE_FAST_PWM_255,               <1>
                    Timer0::CLK_PRESCALE_64,
                    Timer0::OCOX_DISCONNECTED,
                    Timer0::INT_COMPARE_MATCH_A |
-                        Timer0::INT_COMPARE_MATCH_A,
+                        Timer0::INT_COMPARE_MATCH_B,
                    Timer0::FORCE_COMPARE_NONE
                   );
 ----
@@ -123,7 +123,7 @@ Timer0::initialise(Timer0::MODE_FAST_PWM_255,
                    Timer0::CLK_PRESCALE_64,                 <1>
                    Timer0::OCOX_DISCONNECTED,
                    Timer0::INT_COMPARE_MATCH_A |
-                        Timer0::INT_COMPARE_MATCH_A,
+                        Timer0::INT_COMPARE_MATCH_B,
                    Timer0::FORCE_COMPARE_NONE
                   );
 ----
@@ -156,7 +156,7 @@ Timer0::initialise(Timer0::MODE_FAST_PWM_255,
                    Timer0::CLK_PRESCALE_64,
                    Timer0::OCOX_DISCONNECTED,               <1>
                    Timer0::INT_COMPARE_MATCH_A |
-                        Timer0::INT_COMPARE_MATCH_A,
+                        Timer0::INT_COMPARE_MATCH_B,
                    Timer0::FORCE_COMPARE_NONE
                   );
 ----
@@ -196,7 +196,7 @@ Timer0::initialise(Timer0::MODE_FAST_PWM_255,
                    Timer0::CLK_PRESCALE_64,
                    Timer0::OCOX_DISCONNECTED,
                    Timer0::INT_COMPARE_MATCH_A |            <1>
-                        Timer0::INT_COMPARE_MATCH_A,        <2>
+                        Timer0::INT_COMPARE_MATCH_B,        <2>
                    Timer0::FORCE_COMPARE_NONE
                   );
 ----
@@ -241,7 +241,7 @@ Timer0::initialise(Timer0::MODE_FAST_PWM_255,
                    Timer0::CLK_PRESCALE_64,
                    Timer0::OCOX_DISCONNECTED,
                    Timer0::INT_COMPARE_MATCH_A |
-                        Timer0::INT_COMPARE_MATCH_A,
+                        Timer0::INT_COMPARE_MATCH_B,
                    Timer0::FORCE_COMPARE_NONE               <1>
                   );
 ----
