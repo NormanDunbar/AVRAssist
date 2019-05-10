@@ -104,13 +104,13 @@ The timer/counter needs a clock source to actually start it running as a timer, 
 |===
 
 | *Parameter* | *Description*
-| CLK_DISABLED,     | The timer/counter will stopped.
-| CLK_PRESCALE_1,   | The timer/counter will be running at F_CPU/1
-| CLK_PRESCALE_8,   | The timer/counter will be running at F_CPU/8
-| CLK_PRESCALE_64,  | The timer/counter will be running at F_CPU/64
-| CLK_PRESCALE_256, | The timer/counter will be running at F_CPU/256
+| CLK_DISABLED      | The timer/counter will stopped.
+| CLK_PRESCALE_1    | The timer/counter will be running at F_CPU/1
+| CLK_PRESCALE_8    | The timer/counter will be running at F_CPU/8
+| CLK_PRESCALE_64   | The timer/counter will be running at F_CPU/64
+| CLK_PRESCALE_256  | The timer/counter will be running at F_CPU/256
 | CLK_PRESCALE_1024 | The timer/counter will be running at F_CPU/1024
-| CLK_T0_FALLING,   | The timer/counter will be clocked from pin 6, aka `T0`, Arduino pin `D4` on a falling edge.
+| CLK_T0_FALLING    | The timer/counter will be clocked from pin 6, aka `T0`, Arduino pin `D4` on a falling edge.
 | CLK_T0_RISING     | The timer/counter will be clocked from pin 6, aka `T0`, Arduino pin `D4` on a rising edge.
 
 |===
