@@ -1,0 +1,289 @@
+== AVRAssist - Timer 1
+
+This AVR Assistant allows the simple setup and configuration of the 16 bit Timer/counter 1 on your AVR (specifically, ATmega328) micro controller. This code works in the Arduino IDE or free standing for use with some other development system, such as PlatformIO. It has not been tested on other micro controllers. (Although the ATMega168 should work.)
+
+To use the assistant, you must include the `timer1.h` header file:
+
+[source, c++]
+----
+#include "timer1.h"
+----
+
+Following this, you may, optionally, use the `AVRAssist` namespace:
+
+[source, cpp]
+----
+using namespace AVRAssist;
+----
+
+[WARNING]
+====
+The spelling of `AVRAssist` must be as shown above.
+====
+
+If you choose not to do this, you must prefix everything with `AVRAssist::` or the code will not work.
+
+
+=== Timer Initialisation
+
+Once the header file has been included, Timer/counter 1 can be initialised as follows:
+
+[source,cpp]
+----
+#include <timer1.h>
+
+using namespace AVRAssist;
+
+...
+
+Timer1::initialise(Timer1::MODE_CTC_OCR1A,              // Timer mode;
+                   Timer1::CLK_PRESCALE_1024,           // Clock source;
+                   Timer1::OC1A_TOGGLE,                 // OC1A, OC1B actions on compare match;
+                   Timer1::INT_NONE,
+                   Timer1::FORCE_COMPARE_NONE,          // Force Compare required?
+                   Timer1::INPCAP_NOISE_CANCEL_OFF_FALLING_EDGE    // Disable input capture.
+                  );
+...
+----
+
+The above sets Timer/counter 1 into Clear Timer on Compare match mode with `TOP` at `OCR1A`, with a clock prescaler of 1,024. When `OCR1A` matches `TCNT1` pin `OC1A` will toggle but when `OCR1B` matches `TCNT1` nothing happens to pin `OC1B`. No interrupts will be fired for this timer.
+
+==== Initialisation Function
+
+The header file exposes a single `initialise` function which is defined as follows:
+
+[source, cpp]
+----
+void initialise(const uint8_t timerMode,
+                const clockSource_t clockSource, 
+                const compareMatch_t compareMatch = OC1X_DISCONNECTED, 
+                const interrupt_t enableInterrupts = INT_NONE,
+                const forceCompare_t forceCompare = FORCE_COMPARE_NONE,
+                const inputCapture_t inputCapture = INPCAP_NOISE_CANCEL_OFF_FALLING_EDGE)
+----
+
+==== Timer Modes
+
+Timer/counter 1 can be initialised to run in one of 15 modes, as follows.
+ 
+[width=100%, cols="10%,30%,60%"]
+|===
+
+| *Mode* | *Parameter* | *Description*
+^| 0  | MODE_NORMAL = 0      | Normal mode.
+^| 1  | MODE_PC_PWM_255      | 8 bit Phase Correct PWM with `TOP` at 255.
+^| 2  | MODE_PC_PWM_511      | 9 bit Phase Correct PWM with `TOP` at 511.
+^| 3  | MODE_PC_PWM_1023     | 10 bit Phase Correct PWM with `TOP` at 1023.
+^| 4  | MODE_CTC_OCR1A       | Clear Timer on Compare (CTC) with `TOP` at `OCR1A`.
+^| 5  | MODE_FAST_PWM_255    | 8 bit Fast PWM with `TOP` at 255.
+^| 6  | MODE_FAST_PWM_511    | 9 bit Fast PWM with `TOP` at 511.
+^| 7  | MODE_FAST_PWM_1023   | 10 bit Fast PWM with `TOP` at 1023.
+^| 8  | MODE_PC_FC_PWM_ICR1  | Phase and Frequency Correct PWM with `TOP` at `ICR1`.
+^| 9  | MODE_PC_FC_PWM_OCR1A | Phase and Frequency Correct PWM with `TOP` at `OCR1A`.
+^| 10 | MODE_PC_PWM_ICR1     | Phase Correct PWM with `TOP` at `ICR1`.
+^| 11 | MODE_PC_PWM_OCR1A    | Phase Correct PWM with `TOP` at `OCR1A`.
+^| 12 | MODE_CTC_ICR1        | Clear Timer on Compare (CTC) with `TOP` at `ICR1`.
+^| 13 | MODE_RESERVED_13     | Reserved, do not use.
+^| 14 | MODE_FAST_PWM_1CR1   | Fast PWM with `TOP` at `ICR1`.
+^| 15 | MODE_FAST_PWM_OCR1A  | Fast PWM with `TOP` at `OCR1A`.
+
+|===
+
+You use this parameter to define the mode that you wish the timer/counter to run in. It should be obvious, I hope, that only one of the above modes can be used, however, if you wish to `or` them together, be it on your own head!
+
+[source, cpp]
+----
+Timer1::initialise(Timer1::MODE_CTC_OCR1A,                          <1>
+                   Timer1::CLK_PRESCALE_1024,
+                   Timer1::OC1A_TOGGLE,
+                   Timer1::INT_NONE,
+                   Timer1::FORCE_COMPARE_NONE,
+                   Timer1::INPCAP_NOISE_CANCEL_OFF_FALLING_EDGE
+                  );
+----
+<1> The timer mode parameter in action enabling the timer/counter in CTC mode with `TOP` at `OCR1A`.
+
+==== Clock Sources
+
+The timer/counter needs a clock source to actually start it running as a timer, or as a counter. The table below lists the available options for Timer/counter 1.
+
+[width=100%, cols="30%,70%"]
+|===
+
+| *Parameter* | *Description*
+| CLK_DISABLED      | The timer/counter will stopped.
+| CLK_PRESCALE_1    | The timer/counter will be running at F_CPU/1
+| CLK_PRESCALE_8    | The timer/counter will be running at F_CPU/8
+| CLK_PRESCALE_64   | The timer/counter will be running at F_CPU/64
+| CLK_PRESCALE_256, | The timer/counter will be running at F_CPU/256
+| CLK_PRESCALE_1024 | The timer/counter will be running at F_CPU/1024
+| CLK_T1_FALLING    | The timer/counter will be clocked from pin 11, aka `T1`, Arduino pin `D5` on a falling edge.  
+| CLK_T1_RISING     | The timer/counter will be clocked from pin 11, aka `T1`, Arduino pin `D5` on a rising edge.
+
+|===
+
+
+
+You use this mode to define how fast the timer/counter will count, or, to disable the timer.
+
+[source, cpp]
+----
+Timer1::initialise(Timer1::MODE_CTC_OCR1A,
+                   Timer1::CLK_PRESCALE_1024,                       <1>
+                   Timer1::OC1A_TOGGLE,
+                   Timer1::INT_NONE,
+                   Timer1::FORCE_COMPARE_NONE,
+                   Timer1::INPCAP_NOISE_CANCEL_OFF_FALLING_EDGE
+                  );
+----
+<1> The clock source parameter in action showing  that the timer/counter will be running at a speed defined by the system clock, `F_CPU`, divided by 1,024.
+
+
+==== Compare Match Options
+
+This parameter allows you to indicate what actions you want the {avr} to perform on pins `OC1A` (pin 15, Arduino pin `D9`) and/or `OC1B` (pin 16, Arduino pin `D10`) when the value in `TCNT1` matches `OCR1A` or `OCR1B`. The allowed values are:
+
+[width=100%, cols="30%,70%"]
+|===
+
+| *Parameter* | *Description*
+| OC1X_DISCONNECTED | The two `OC1x` pins will not be affected when the timer count matches either `OCR1A` or `OCR1B`. This is the default.
+| OC1A_TOGGLE       | Pin `OC1A` will toggle  when `TCNT1` matches `OCR1A`.
+| OC1A_CLEAR        | Pin `OC1A` will be reset `LOW` when `TCNT1` matches `OCR1A`.
+| OC1A_SET          | Pin `OC1A` will be reset `HIGH` when `TCNT1` matches `OCR1A`.
+| OC1B_TOGGLE       | Pin `OC1B` will toggle  when `TCNT1` matches `OCR1B`.
+| OC1B_CLEAR        | Pin `OC1B` will be reset `LOW` when `TCNT1` matches `OCR1B`.
+| OC1B_SET          | Pin `OC1B` will be reset `HIGH` when `TCNT1` matches `OCR1B`.
+
+|===
+
+An example of initialising the timer/counter using this parameter is:
+
+[source, cpp]
+----
+Timer1::initialise(Timer1::MODE_CTC_OCR1A,
+                   Timer1::CLK_PRESCALE_1024,
+                   Timer1::OC1A_TOGGLE,                             <1>
+                   Timer1::INT_NONE,
+                   Timer1::FORCE_COMPARE_NONE,
+                   Timer1::INPCAP_NOISE_CANCEL_OFF_FALLING_EDGE
+                  );
+----
+<1> The compare match parameter in action showing that when `TCNT1` matches `OCR1A`, pin `OC1A` (pin 15, Arduino `D9`) will toggle while `OC1B` (pin 16, Arduino `D10`) will not be affected when `TCNT1` matches `OCR1B`.
+
+
+==== Interrupts
+
+Timer/counter 1 has four interrupts that can be enabled and these are:
+
+[width=100%, cols="30%,70%"]
+|===
+
+| *Parameter* | *Description*
+| INT_NONE            | No interrupts are required on this timer/counter. This is the default.
+| INT_CAPTURE         | The `TIMER1 CAPT` (input capture) interrupt is to be enabled. You are required to create an ISR function to handle it.
+| INT_COMPARE_MATCH_A | The `TIMER1 COMPA` interrupt is to be enabled. You are required to create an ISR function to handle it.
+| INT_COMPARE_MATCH_B | The `TIMER1 COMPB` interrupt is to be enabled. You are required to create an ISR function to handle it.
+| INT_OVERFLOW        | The `TIMER1 OVF` interrupt is to be enabled. You are required to create an ISR function to handle it. 
+
+|===
+ 
+An example of initialising the timer/counter with one interrupt enabled, would be:
+
+[source, cpp]
+----
+Timer1::initialise(Timer1::MODE_CTC_OCR1A,
+                   Timer1::CLK_PRESCALE_1024,
+                   Timer1::OC1A_TOGGLE,
+                   Timer1::INT_NONE,                                <1>
+                   Timer1::FORCE_COMPARE_NONE,
+                   Timer1::INPCAP_NOISE_CANCEL_OFF_FALLING_EDGE
+                  );
+----
+<1> The interrupts parameter in action showing that there are no interrupts to be enabled for this timer. If required, you can `or` various values together to create the full set of required interrupts.
+
+[NOTE]
+====
+You don't have to activate the input capture interrupt (`INT_CAPTURE`) if you don't wish to, you can poll (not always a good idea) bit `ICF1` in register `TIFR1` and when it is set, an event has occurred.
+====
+
+==== Force Compare Options
+
+Timer/counter 1 can be forced to run a compare of `TCNT1` against `OCR1A` and/or `OCR1B` at any time. However, it is unlikely that this will be particularly useful - Famous last words? When actioned, the output pins `OC1A` (pin 15, Arduino `D9`) and `OC1B` (pin 16, Arduino `D10`) will be toggled or set according to the <<Compare Match Options, compare match options>> as long as that parameter is not set to `OC1X_DISCONNECTED` and the pin(s) in question are set to toggle, clear or set.
+
+These options, if enabled, are only ever actioned when the timer/counter is running in a mode other than any of the PWM modes. 
+
+When a forced comparison is carried out, no interrupts will fire, even if configured, and `TCNT1` will not be cleared in CTC mode with `OCR1A` as `TOP`. (Timer mode `MODE_CTC_OCR1A`.)
+
+Setting these bits at timer initialisation is perhaps not so useful, but at least the option is there. These bits are cleared immediately after the forced compare has taken place.
+
+
+The options are:
+
+[width=100%, cols="30%,70%"]
+|===
+
+| *Parameter* | *Description*
+| FORCE_COMPARE_NONE    | No forced comparisons will take place. This is the default.
+| FORCE_COMPARE_MATCH_A | A forced compare of `TCNT1` against `OCR1A` will be carried out.
+| FORCE_COMPARE_MATCH_B | A forced compare of `TCNT1` against `OCR1B` will be carried out.
+
+|===
+
+While the default for this parameter is to have no force compares enabled, `FORCE_COMPARE_NONE`, you can be explicit if you wish, and call the `initialise()` function as follows:
+
+[source, cpp]
+----
+Timer1::initialise(Timer1::MODE_CTC_OCR1A,
+                   Timer1::CLK_PRESCALE_1024,
+                   Timer1::OC1A_TOGGLE,
+                   Timer1::INT_NONE,
+                   Timer1::FORCE_COMPARE_NONE,                      <1>
+                   Timer1::INPCAP_NOISE_CANCEL_OFF_FALLING_EDGE
+                  );
+----
+<1> The force compare parameter in action showing that we are not requiring a force compare as soon as the timer is initialised.
+
+You can, of course, initialise the timer as above, and then, in your code at any time, simply set one or other of the `FOC1A` and `FOC1B` bits in register `TCCR1C` to force a compare to affect the output pins at that point, but remember, no interrupts will fire for the compare match in that case.
+
+
+==== Input Capture
+
+Timer/counter 1 has an input capture facility which allows it to record a 'timestamp' when an event happens on pin 14, `ICP1`, Arduino pin `D8`. This parameter allows the timer to be configured as required, or for the input capture to be disabled - the default setting.
+
+The permitted values are shown in the following table.
+
+[width=100%, cols="50%,50%"]
+|===
+
+| *Parameter* | *Description*
+
+| INPCAP_NOISE_CANCEL_OFF_FALLING_EDGE | The input capture is running with no noise cancelling and will be triggered on a falling edge on `ICP1`.
+| INPCAP_NOISE_CANCEL_OFF_RISING_EDGE  | The input capture is running with no noise cancelling and will be triggered on a rising edge on `ICP1`.
+| INPCAP_NOISE_CANCEL_ON_FALLING_EDGE  | The input capture is running with noise cancelling enabled and will be triggered on a falling edge on `ICP1`.
+| INPCAP_NOISE_CANCEL_ON_RISING_EDGE   | The input capture is running with noise cancelling enabled and will be triggered on a rising edge on `ICP1`.
+
+|===
+
+
+[NOTE]
+====
+When `ICR1` is used as the `TOP` value in timer mode `MODE_PC_FC_PWM_ICR1`, `MODE_PC_PWM_ICR1`, `MODE_CTC_ICR1` or `MODE_FAST_PWM_1CR1`, then the `ICP1` (pin 14, Arduino pin `D8`) is disconnected from the input capture circuitry meaning that the input capture function is disabled.
+
+You can still set the bits in _any_ timer mode, obviously, but they won't work if the mode is one of the PWM modes.
+
+Yes, I know, they _are_ long names!
+====
+
+
+[source, cpp]
+----
+Timer1::initialise(Timer1::MODE_CTC_OCR1A,
+                   Timer1::CLK_PRESCALE_1024,
+                   Timer1::OC1A_TOGGLE,
+                   Timer1::INT_NONE,
+                   Timer1::FORCE_COMPARE_NONE,
+                   Timer1::INPCAP_NOISE_CANCEL_OFF_FALLING_EDGE     <1>
+                  );
+----
+<1> The input capture parameter in action showing that we wish to have input capture noise cancelling turned off, and the input to be triggered on a falling edge on `ICP1`. As no interrupts have been enabled for the input capture, the code is assumed to be polling bit `ICF1` in register `TIFR1` to determine when an event occurred.
