@@ -19,7 +19,7 @@ Timer0::initialise(Timer0::MODE_FAST_PWM_255,           // Timer mode;
                    Timer0::CLK_PRESCALE_64,             // Prescaler;
                    Timer0::OCOX_DISCONNECTED,           // OCOA, OCOB actions on compare match;
                    Timer0::INT_COMP_MATCH_A |           // Interrupt(s) to enable;
-                        Timer0::INT_COMP_MATCH_A,
+                        Timer0::INT_COMP_MATCH_B,
                    Timer0::FORCE_COMPARE_NONE           // Force Compare required?
                   );
 ...
