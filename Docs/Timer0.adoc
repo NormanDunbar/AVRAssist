@@ -26,7 +26,7 @@ If you choose not to do this, you must prefix everything with `AVRAssist::` or t
 
 === Timer Initialisation
 
-Once the header file has been included, the timer can be initialised as follows:
+Once the header file has been included, timer/counter 0 can be initialised as follows:
 
 [source,cpp]
 ----
@@ -39,8 +39,8 @@ using namespace AVRAssist;
 Timer0::initialise(Timer0::MODE_FAST_PWM_255,           // Timer mode;
                    Timer0::CLK_PRESCALE_64,             // Clock source;
                    Timer0::OCOX_DISCONNECTED,           // OCOA, OCOB actions on compare match;
-                   Timer0::INT_COMP_MATCH_A |           // Interrupt(s) to enable;
-                        Timer0::INT_COMP_MATCH_A,
+                   Timer0::INT_COMPARE_MATCH_A |        // Interrupt(s) to enable;
+                        Timer0::INT_COMPARE_MATCH_A,
                    Timer0::FORCE_COMPARE_NONE           // Force Compare required?
                   );
 ...
@@ -61,14 +61,190 @@ void initialise(const uint8_t timerMode,
                 const forceCompare_t forceCompare = FORCE_COMPARE_NONE) {
 ----
 
+
 ==== Timer Modes
+
+Timer/counter 0 can be initialised to run in one of 6 modes, as follows.
+
+[width=100%, cols="10%,30%,60%"]
+|===
+
+| *Mode* | *Parameter* | *Description*
+^| 0 | MODE_NORMAL         | Normal mode.
+^| 1 | MODE_PC_PWM_255     | Phase Correct PWM with `TOP` at 255.
+^| 2 | MODE_CTC_OCR0A      | Clear Timer on Compare (CTC) with `TOP` at `OCR0A`.
+^| 3 | MODE_FAST_PWM_255   | Fast PWM with `TOP` at 255.
+^| 4 | MODE_RESERVED_4     | Reserved, do not use.
+^| 5 | MODE_PC_PWM_OCR0A   | Phase Correct PWM with `TOP` at `OCR0A`.
+^| 6 | MODE_RESERVED_6     | Reserved, do not use.
+^| 7 | MODE_FAST_PWM_OCR0A | Fast PWM with `TOP` at `OCR0A`.
+
+|===
+
+You use this parameter to define the mode that you wish the timer/counter to run in. It should be obvious, I hope, that only one of the above modes can be used, however, if you wish to `or` them together, be it on your own head!
+
+[source, cpp]
+----
+Timer0::initialise(Timer0::MODE_FAST_PWM_255,               <1>
+                   Timer0::CLK_PRESCALE_64,
+                   Timer0::OCOX_DISCONNECTED,
+                   Timer0::INT_COMPARE_MATCH_A |
+                        Timer0::INT_COMPARE_MATCH_A,
+                   Timer0::FORCE_COMPARE_NONE
+                  );
+----
+<1> The timer mode parameter in action enabling the timer/counter in fast PWM mode with `top` defined by the value 255.
 
 
 ==== Clock Sources
 
+The timer/counter needs a clock source to actually start it running as a timer, or as a counter. The following options are available for Timer/counter 0:
+
+[width=100%, cols="30%,70%"]
+|===
+
+| *Parameter* | *Description*
+| CLK_DISABLED,     | The timer/counter will stopped.
+| CLK_PRESCALE_1,   | The timer/counter will be running at F_CPU/1
+| CLK_PRESCALE_8,   | The timer/counter will be running at F_CPU/8
+| CLK_PRESCALE_64,  | The timer/counter will be running at F_CPU/64
+| CLK_PRESCALE_256, | The timer/counter will be running at F_CPU/256
+| CLK_PRESCALE_1024 | The timer/counter will be running at F_CPU/1024
+| CLK_T0_FALLING,   | The timer/counter will be clocked from pin 6, aka `T0`, Arduino pin `D4` on a falling edge.
+| CLK_T0_RISING     | The timer/counter will be clocked from pin 6, aka `T0`, Arduino pin `D4` on a rising edge.
+
+|===
+
+You use this mode to define how fast the timer/counter will count, or, to disable the timer.
+
+[source, cpp]
+----
+Timer0::initialise(Timer0::MODE_FAST_PWM_255,
+                   Timer0::CLK_PRESCALE_64,                 <1>
+                   Timer0::OCOX_DISCONNECTED,
+                   Timer0::INT_COMPARE_MATCH_A |
+                        Timer0::INT_COMPARE_MATCH_A,
+                   Timer0::FORCE_COMPARE_NONE
+                  );
+----
+<1> The clock source parameter in action showing  that the timer/counter will be running at a speed defined by the system clock, `F_CPU`, divided by 64.
+
+
 ==== Compare Match Options
+
+This parameter allows you to indicate what actions you want the {avr} to perform on pins `OC0A` (pin 12, Arduino pin `D6`) and/or `OC0B` (pin 11, Arduino pin `D5`) when the value in `TCNT0` matches `OCR0A` or `OCR0B`. The allowed values are:
+
+[width=100%, cols="30%,70%"]
+|===
+
+| *Parameter* | *Description*
+| OCOX_DISCONNECTED | The two `OC0x` pins will not be affected when the timer count matches either `OCR0A` or `OCR0B`.
+| OCOA_TOGGLE       | Pin `OC0A` will toggle  when `TCNT0` matches `OCR0A`.
+| OCOA_CLEAR        | Pin `OC0A` will be reset `LOW` when `TCNT0` matches `OCR0A`.
+| OCOA_SET          | Pin `OC0A` will be reset `HIGH` when `TCNT0` matches `OCR0A`.
+| OCOB_TOGGLE       | Pin `OC0B` will toggle  when `TCNT0` matches `OCR0B`.
+| OCOB_CLEAR        | Pin `OC0B` will be reset `LOW` when `TCNT0` matches `OCR0B`.
+| OCOB_SET          | Pin `OC0B` will be reset `HIGH` when `TCNT0` matches `OCR0B`.
+
+|===
+
+An example of initialising the timer/counter using this parameter is:
+
+[source, cpp]
+----
+Timer0::initialise(Timer0::MODE_FAST_PWM_255,
+                   Timer0::CLK_PRESCALE_64,
+                   Timer0::OCOX_DISCONNECTED,               <1>
+                   Timer0::INT_COMPARE_MATCH_A |
+                        Timer0::INT_COMPARE_MATCH_A,
+                   Timer0::FORCE_COMPARE_NONE
+                  );
+----
+<1> The compare match parameter in action showing that when `TCNT0` matches `OCR0A` or `OCR0B`, that no special effects take place. The pins `OC0A` (pin 12, Arduino `D6`) and `OC0B` (pin 11, Arduino `D5`) are not affected.
+
 
 ==== Interrupts
 
+Timer/counter 0 has three interrupts that can be enabled. Sadly though, if you are using the Arduino IDE to write your code, it will sneakily use the overflow interrupt on this timer/counter, to facilitate the `millis()` function, and from that `delay()` etc are defined. You cannot define the Timer/counter 0 overflow interrupt _handler_ in your own code if you compile within the Arduino IDE.
+
+The various interrupt options are:
+
+[width=100%, cols="30%,70%"]
+|===
+
+| *Parameter* | *Description*
+| INT_NONE            | No interrupts are required on this timer/counter. This is the default.
+| INT_COMPARE_MATCH_A | The `TIMER0 COMPA` interrupt is to be enabled. You are required to create an ISR function to handle it.
+| INT_COMPARE_MATCH_B | The `TIMER0 COMPB` interrupt is to be enabled. You are required to create an ISR function to handle it.
+| INT_OVERFLOW        | The `TIMER0 OVF` interrupt is to be enabled. You are required to create an ISR function to handle it. This interrupt's handler cannot be defined in your own code in an Arduino IDE development system as the handler, `ISR(TIMER0_OVF_vect)` has been created internally and added to your code behind the scenes.
+
+|===
+
+An example of initialising the timer/counter with interrupts enabled, would be:
+
+[source, cpp]
+----
+ISR(TIMER0_COMPA_vect) { 
+    ...
+}
+
+ISR(TIMER0_COMPB_vect) {
+    ...
+}
+
+Timer0::initialise(Timer0::MODE_FAST_PWM_255,
+                   Timer0::CLK_PRESCALE_64,
+                   Timer0::OCOX_DISCONNECTED,
+                   Timer0::INT_COMPARE_MATCH_A |            <1>
+                        Timer0::INT_COMPARE_MATCH_A,        <2>
+                   Timer0::FORCE_COMPARE_NONE
+                  );
+----
+<1> The interrupts parameter in action showing that the 'compare match A' and 'compare match B' interrupts are to be enabled, while the other interrupt, the timer/counter overflow interrupt, is not to be enabled here.
++
+[NOTE]
+====
+On Arduino systems, disabling the overflow interrupt for timer/counter 0 will stop `millis()` etc from working. The `delay()` function will also fail to work. In addition, attempting to define the timer/counter 0 overflow interrupt handler in your own (Arduino) code will fail to compile as the Arduino system already defines a handler for that interrupt. You need to write your code in something like _Atmel Studio_ or _PlatformIO_ to be able to use that interrupt as those development systems do not interfere with the code that you write!
+
+You _can_ obviously still enable the interrupts with `INT_OVERLOW` enabled, you just cannot control what happens in the interrupt handler for it. The Arduino IDE has full control, you have none, but if your code relies on the Arduino `millis()` or calls `delay()` then you should always enable that interrupt.
+
+Of course, if you change this timer/counter's initialisation away from that of the Arduino, you will affect those functions anyway.
+====
+<2> You can `or` various values together to create the full set of required interrupts, as in this example.
+
+
 ==== Force Compare Options
 
+Timer/counter 0 can be forced to run a compare of `TCNT0` against `OCR0A` and/or `OCR0B` at any time. However, it is unlikely that this will be useful (Famous last words?) - the output pins `OC0A` (pin 12, Arduino `D6`) and `OC0B` (pin 11, Arduino `D5`) will be toggled or set according to the <<Compare Match Options, compare match options>> as long as that parameter is not set to `OCOX_DISCONNECTED` and the pin(s) in question are set to toggle, clear or set.
+
+When the forced comparison is carried out, no interrupts will fire, if configured, and `TCNT0` will not be cleared in CTC mode with `OCR0A` as `TOP`. (Timer mode `MODE_CTC_OCR0A`.)
+
+Setting these bits at timer initialisation is perhaps not so useful, but at least the option is there. These bits are cleared after the forced compare has taken place.
+
+The options are:
+
+[width=100%, cols="30%,70%"]
+|===
+
+| *Parameter* | *Description*
+| FORCE_COMPARE_NONE    | No forced comparisons will take place. This is the default.
+| FORCE_COMPARE_MATCH_A | A forced compare of `TCNT0` against `OCR0A` will be carried out.
+| FORCE_COMPARE_MATCH_B | A forced compare of `TCNT0` against `OCR0B` will be carried out.
+
+|===
+
+While the default for this parameter is to have no force compares enabled, `FORCE_COMPARE_NONE`, you can be explicit if you wish, and call the `initialise()` function as follows:
+
+[source, cpp]
+----
+Timer0::initialise(Timer0::MODE_FAST_PWM_255,
+                   Timer0::CLK_PRESCALE_64,
+                   Timer0::OCOX_DISCONNECTED,
+                   Timer0::INT_COMPARE_MATCH_A |
+                        Timer0::INT_COMPARE_MATCH_A,
+                   Timer0::FORCE_COMPARE_NONE               <1>
+                  );
+----
+<1> The force compare parameter in action showing that we are not requiring a force compare as soon as the timer is initialised.
+
+You can, of course, initialise the timer as above, and then, in your code at any time, simply set one or other of the `FOC0A` and `FOC0B` bits in register `TCCR0B` to force a compare to affect the output pins at that point, but remember, no interrupts will fire for the compare match in that case.
