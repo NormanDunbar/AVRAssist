@@ -93,7 +93,7 @@ Timer0::initialise(Timer0::MODE_FAST_PWM_255,               <1>
                    Timer0::FORCE_COMPARE_NONE
                   );
 ----
-<1> The timer mode parameter in action enabling the timer/counter in fast PWM mode with `top` defined by the value 255.
+<1> The timer mode parameter in action enabling the timer/counter in fast PWM mode with `TOP` defined by the value 255.
 
 
 ==== Clock Sources
@@ -142,7 +142,7 @@ This parameter allows you to indicate what actions you want the {avr} to perform
 | OCOA_TOGGLE       | Pin `OC0A` will toggle  when `TCNT0` matches `OCR0A`.
 | OCOA_CLEAR        | Pin `OC0A` will be reset `LOW` when `TCNT0` matches `OCR0A`.
 | OCOA_SET          | Pin `OC0A` will be reset `HIGH` when `TCNT0` matches `OCR0A`.
-| OCOB_TOGGLE       | Pin `OC0B` will toggle  when `TCNT0` matches `OCR0B`.
+| OCOB_TOGGLE       | Pin `OC0B` will toggle  when `TCNT0` matches `OCR0B`. You cannot use `OC0B_TOGGLE` in anything but NORMAL and CTC modes.
 | OCOB_CLEAR        | Pin `OC0B` will be reset `LOW` when `TCNT0` matches `OCR0B`.
 | OCOB_SET          | Pin `OC0B` will be reset `HIGH` when `TCNT0` matches `OCR0B`.
 
@@ -228,8 +228,8 @@ The options are:
 
 | *Parameter* | *Description*
 | FORCE_COMPARE_NONE    | No forced comparisons will take place. This is the default.
-| FORCE_COMPARE_MATCH_A | A forced compare of `TCNT0` against `OCR0A` will be carried out.
-| FORCE_COMPARE_MATCH_B | A forced compare of `TCNT0` against `OCR0B` will be carried out.
+| FORCE_COMPARE_MATCH_A | A forced compare of `TCNT0` against `OCR0A` will be carried out.  You cannot use any force compare modes in anything but NORMAL and CTC modes.
+| FORCE_COMPARE_MATCH_B | A forced compare of `TCNT0` against `OCR0B` will be carried out.   You cannot use any force compare modes in anything but NORMAL and CTC modes.
 
 |===
 
