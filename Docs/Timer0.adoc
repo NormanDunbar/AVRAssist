@@ -1,4 +1,4 @@
-== AVRAssist - Timer 0
+== Timer 0
 
 This AVR Assistant allows the simple setup and configuration of Timer/Counter 0 on your AVR (specifically, ATmega328) micro controller. This code works in the Arduino IDE or free standing for use with some other development system, such as PlatformIO. It has not been tested on other micro controllers. (Although he ATMega168 should work.)
 
@@ -248,3 +248,4 @@ Timer0::initialise(Timer0::MODE_FAST_PWM_255,
 <1> The force compare parameter in action showing that we are not requiring a force compare as soon as the timer is initialised.
 
 You can, of course, initialise the timer as above, and then, in your code at any time, simply set one or other of the `FOC0A` and `FOC0B` bits in register `TCCR0B` to force a compare to affect the output pins at that point, but remember, no interrupts will fire for the compare match in that case.
+

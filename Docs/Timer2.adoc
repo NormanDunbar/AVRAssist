@@ -1,4 +1,4 @@
-== AVRAssist - Timer 2
+== Timer 2
 
 This AVR Assistant allows the simple setup and configuration of the 8 bit Timer/Counter 2 on your AVR (specifically, ATmega328) micro controller. This code works in the Arduino IDE or free standing for use with some other development system, such as PlatformIO. It has not been tested on other micro controllers. (Although he ATMega168 should work.)
 
