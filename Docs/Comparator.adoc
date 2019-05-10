@@ -1,0 +1,153 @@
+== AVRAssist - Analogue Comparator
+
+This AVR Assistant allows the simple setup and configuration of the Analogue Comparator on your AVR (specifically, ATmega328) micro controller. This code works in the Arduino IDE or free standing for use with some other development system, such as PlatformIO. It has not been tested on other micro controllers. (Although the ATMega168 should work.)
+
+The comparator output will be `HIGH` whenever the reference voltage is higher than the sampled voltage, and will be `LOW` when the reference voltage is lower or equal to the sampled voltage. The comparator output is simply bit `ACO` in register `ACSR`.
+
+To use this assistant, you must include the `comparator.h` header file:
+
+[source, c++]
+----
+#include "comparator.h"
+----
+
+Following this, you may, optionally, `use` the `AVRAssist` namespace:
+
+[source, cpp]
+----
+using namespace AVRAssist;
+----
+
+[WARNING]
+====
+The spelling of `AVRAssist` must be as shown above.
+====
+
+If you choose not to do this, you must prefix everything with `AVRAssist::` or the code will not work.
+
+
+=== Comparator Initialisation
+
+Once the header file has been included, the comparator can be initialised as follows:
+
+[source,cpp]
+----
+#include <comparator.h>
+
+using namespace AVRAssist;
+
+...
+
+comparator::initialise(comparator::REFV_EXTERNAL, 
+                       comparator::SAMPLE_AIN1, 
+                       comparator::INT_TOGGLE);
+...
+----
+
+The above sets the comparator to use `AIN0`, pin 12, Arduino pin `D6` as the reference voltage, `AIN1`, pin 13, Arduino pin `D7` as the voltage to be sampled and compared, and an interrupt to fire whenever the comparator output toggles.
+
+==== Initialisation Function
+
+The header file exposes a single `initialise` function which is defined as follows:
+
+[source, cpp]
+----
+void initialise(const reference_t referenceSource, 
+                const sample_t sampleSource, 
+                const interrupt_t interruptMode = 0);
+----
+
+
+==== Reference Voltage
+
+The comparator can be configured to use one of two separate voltage sources as the reference voltage, these being:
+
+[width=100%, cols="25%,75%"]
+|===
+
+| *Parameter* | *Description*
+| REFV_EXTERNAL     | Pin 12, `AIN0`, Arduino pin `D6` will be used as the reference voltage.
+| REFV_INTERNAL     | The internal 1.1 volt bandgap reference voltage will be used.
+
+|===
+
+[WARNING]
+====
+The data sheet advises strongly, that you do not change to `REFV_INTERNAL` if the `AREF` pin is connected to any external source of voltage. You will let the magic blue smoke out if you do.
+
+Many of the 'breadboard Arduinos' on the internet, show the `AREF` pin connected to 5V - this is a bad thing if you ever configure the Analogue Comparator or the ADC to use the internal voltage as a reference.
+
+The only thing you should connect to the `AREF` pin is a 100nF capacitor to ground.
+====
+
+You use this parameter to define the reference voltage to be used, as follows:
+
+[source, cpp]
+----
+comparator::initialise(comparator::REFV_EXTERNAL,           <1>
+                       comparator::SAMPLE_AIN1, 
+                       comparator::INT_TOGGLE);
+----
+<1> The comparator will be set up using the `AIN0` pin as its reference voltage.
+
+
+==== Sample Voltage
+
+The comparator needs a second voltage source, this one is to be compared with the reference voltage described above. The following values are permitted:
+
+[width=100%, cols="25%,75%"]
+|===
+
+| *Parameter* | *Description*
+| SAMPLE_ADC0 | Compare the voltage on pin `PC0` (Arduino `A0`) with the reference voltage.
+| SAMPLE_ADC1 | Compare the voltage on pin `PC1` (Arduino `A1`) with the reference voltage.
+| SAMPLE_ADC2 | Compare the voltage on pin `PC2` (Arduino `A2`) with the reference voltage.
+| SAMPLE_ADC3 | Compare the voltage on pin `PC3` (Arduino `A3`) with the reference voltage.
+| SAMPLE_ADC4 | Compare the voltage on pin `PC4` (Arduino `A4`) with the reference voltage.
+| SAMPLE_ADC5 | Compare the voltage on pin `PC5` (Arduino `A5`) with the reference voltage.
+| SAMPLE_ADC6 | Compare the voltage on pin `ADC6` with the reference voltage. (SMD version only.)
+| SAMPLE_ADC7 | Compare the voltage on pin `ADC7` with the reference voltage. (SMD version only.)
+| SAMPLE_AIN1 | Compare the voltage on pin `AIN1` with the reference voltage.
+
+|===
+
+[NOTE]
+====
+The various dual inline versions of the ATmega328 do not have pins `ADC6` and `ADC7`, those two are only present on the surface mount versions. Some Arduino Uno clones have been built with a surface mount version of the ATmega328, and on those boards, _some_ manufacturers have connected these two pins to a header while others leave them unconnected.
+====
+
+You use this parameter to define which pin will be use to source the voltage to be compared with the reference voltage.
+
+[source, cpp]
+----
+comparator::initialise(comparator::REFV_EXTERNAL,
+                       comparator::SAMPLE_AIN1,             <1>
+                       comparator::INT_TOGGLE);
+----
+<1> The comparator will be set up using the `AIN1` pin as its sample voltage source.
+
+
+
+==== Interrupts
+The comparator has a single interrupt, but it has thee separate manners of firing it. These are:
+
+[width=100%, cols="25%,75%"]
+|===
+
+| *Parameter* | *Description*
+| INT_DISABLED | The comparator will not raise any interrupts. The code is assumed to be monitoring bit `ACO` in register `ACSR`.
+| INT_TOGGLE   | When bit `ACO` in register `ACSR` toggles, the `ANALOG_COMP` interrupt will be fired.
+| INT_FALLING  | When bit `ACO` in register `ACSR` changes from `HIGH` to `LOW`, the `ANALOG_COMP` interrupt will be fired.
+| INT_RISING   | When bit `ACO` in register `ACSR` changes from `LOW` to `HIGH`, the `ANALOG_COMP` interrupt will be fired.
+
+|===
+
+An example of initialising the comparator using this parameter is:
+
+[source, cpp]
+----
+comparator::initialise(comparator::REFV_EXTERNAL,
+                       comparator::SAMPLE_AIN1, 
+                       comparator::INT_TOGGLE);             <1>
+----
+<1> The comparator will be set up so that the interrupt will be fired whenever the `ACO` bit changes.
