@@ -54,11 +54,11 @@ TIMSK0 = (1 << OCIE0A) | (1 << OCIE0B);
 
 And it gets worse when I decide to add in more features and have to look up the additional bits and set them correctly. Get the computer to do it for you is my motto - or one of them!
 
-At the moment, each header file creates a namespace and you (or I) can use that namespace to initialise one feature - timer, comparator, watchdog, ADC etc - of the micro-controller. At the moment, everything lives in the `AVRAssist::<feature>` namespace, `AVRAssist::Timer0` for example, but if, as I might, I decide to add my ATtiny85s into the mix, it is possible that some future update will break things and add another level - `AVRAssist::<chip>::<feature>` namespace, `AVRAssist::atmega328::Timer0` and `AVRAssist::attiny85::Timer0` perhaps. Stay tuned.
+At the moment, each header file creates a namespace and you (or I) can use that namespace to initialise one feature - timer, comparator, watchdog, ADC etc - of the micro-controller. At the moment, everything lives in the `AVRAssist::<feature>` namespace, `AVRAssist::Timer0` for example, but if, as I might, I decide to add my ATtiny85s into the mix, it is possible that some future update will break things and add another level - `AVRAssist::<chip>::<feature>` namespace, `AVRAssist::Atmega328::Timer0` and `AVRAssist::Attiny85::Timer0` perhaps. Stay tuned.
 
 [NOTE]
 ====
-It _should_ be a simple edit to change one line, `using namespace AVRAssist;` to something like `using AVRAssist::atmega328;` instead, to use the micro-controller specific later versions of the code. Hey, I have to change my code as well, so the easier the better.
+It _should_ be a simple edit to change one line, `using namespace AVRAssist;` to something like `using AVRAssist::Atmega328;` instead, to use the micro-controller specific later versions of the code. Hey, I have to change my code as well, so the easier the better.
 ====
 
 At the moment, I'm working mostly with ATmega328P devices, so the whole thing is designed (for certain values of _designed_) exclusively for that micro controller.
