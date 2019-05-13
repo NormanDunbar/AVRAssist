@@ -23,7 +23,49 @@
 :revdate: 7th May 2019
 :revremark: Initial idea & first attempt.
 
+== Introduction
 
+`AVRAssist` is a _first attempt_ at making (my) life easier when it comes to trying to remember what bits in which registers need to be set to enable/initialise certain features on my Arduino boards' Atmega328P micro controller. After all, which of these is easier to remember, this:
+
+[source, cpp]
+----
+#include <timer0.h>
+
+using namespace AVRAssist;
+
+...
+
+Timer0::initialise(Timer0::MODE_FAST_PWM_255,     // Timer mode;
+                   Timer0::CLK_PRESCALE_64,       // Prescaler;
+                   Timer0::OCOX_DISCONNECTED,     // Don't touch OCOA or OCOB;
+                   Timer0::INT_COMP_MATCH_A |     // Interrupt(s) to enable;
+                        Timer0::INT_COMP_MATCH_B);
+...
+----
+
+or this:
+
+[source, cpp]
+----
+TCCR0A = (1 << WGM00) | (1 << WGM01);
+TCCR0B = (1 << CS01)  | (1 << CS00);
+TIMSK0 = (1 << OCIE0A) | (1 << OCIE0B);
+----
+
+And it gets worse when I decide to add in more features and have to look up the additional bits and set them correctly. Get the computer to do it for you is my motto - or one of them!
+
+At the moment, each header file creates a namespace and you (or I) can use that namespace to initialise one feature - timer, comparator, watchdog, ADC etc - of the micro-controller. At the moment, everything lives in the `AVRAssist::<feature>` namespace, `AVRAssist::Timer0` for example, but if, as I might, I decide to add my ATtiny85s into the mix, it is possible that some future update will break things and add another level - `AVRAssist::<chip>::<feature>` namespace, `AVRAssist::atmega328::Timer0` and `AVRAssist::attiny85::Timer0` perhaps. Stay tuned.
+
+[NOTE]
+====
+It _should_ be a simple edit to change one line, `using namespace AVRAssist;` to something like `using AVRAssist::atmega328;` instead, to use the micro-controller specific later versions of the code. Hey, I have to change my code as well, so the easier the better.
+====
+
+At the moment, I'm working mostly with ATmega328P devices, so the whole thing is designed (for certain values of _designed_) exclusively for that micro controller.
+
+It could be that I extend this code to make actual objects out of the current namespaces, so that I can do other things, without needing the bit names and registers all the time. Time will tell, that's its job after all. 
+
+It is intended that this code will work in the Arduino IDE as well as with other development systems, such as PlatformIO or even AVR Studio etc, however, the Arduino IDE does a lot of jiggery-pokery in the background, setting up timers and PWM and such like, that some things might not be fully compatibly with the Arduino. Hopefully, this will be pointed out in the documentation.
 
 // Bring in your chapters here.
 include::Timer0.adoc[]
