@@ -24,7 +24,7 @@ namespace AVRAssist {
         // TIMER MODES. Mode 13 is reserved and not used.  The rest are
         // simply used to index into the timerModes[][] array below.
         //------------------------------------------------------------------
-        enum {
+        enum  : uint8_t {
             MODE_NORMAL = 0,                        // Mode 0: Normal mode.                        
             MODE_PC_PWM_255,                        // Mode 1: Phase Correct PWM, TOP = 255
             MODE_PC_PWM_511,                        // Mode 2: Phase Correct PWM, TOP = 511
@@ -73,7 +73,7 @@ namespace AVRAssist {
         // CLOCK SOURCES. Note that external source, pin 'T1' is 
         // physical pin 11, Arduino pin D5 or AVR pin PD5.
         //------------------------------------------------------------------
-        enum clockSource_t {
+        enum clockSource_t : uint8_t  {
             CLK_DISABLED,                           // No clock running
             CLK_PRESCALE_1,                         // Prescaler = divide by 1
             CLK_PRESCALE_8,                         // Prescaler = divide by 8
@@ -90,7 +90,7 @@ namespace AVRAssist {
         // Pin OC1A = Physical pin 17, Arduino pin D11 or AVR pin PB3.
         // Pin OC1B = Physical pin 5, Arduino pin D3 or AVR pin PD3.
         //------------------------------------------------------------------
-        enum compareMatch_t {
+        enum compareMatch_t  : uint8_t {
             OC1X_DISCONNECTED = 0,                  // Nothing - OC1A, OC1B both disconnected.
             OC1A_TOGGLE  = (1 << COM1A0),           // OC1A will toggle.
             OC1A_CLEAR   = (1 << COM1A1),           // OC1A will clear.
@@ -103,7 +103,7 @@ namespace AVRAssist {
         //------------------------------------------------------------------
         // Interrupts to enable.
         //------------------------------------------------------------------
-        enum interrupt_t {
+        enum interrupt_t  : uint8_t {
             INT_NONE = 0,
             INT_CAPTURE = (1 << ICIE1),
             INT_COMP_MATCH_A = (1 << OCIE1A),
@@ -115,7 +115,7 @@ namespace AVRAssist {
         // FORCE COMPARE bits. These bits end up in bits FOC1A & FOC1B in 
         // the TCCR1C register.
         //------------------------------------------------------------------
-        enum forceCompare_t {
+        enum forceCompare_t  : uint8_t {
             FORCE_COMPARE_NONE = 0,
             FORCE_COMPARE_MATCH_A = (1 << FOC1A),
             FORCE_COMPARE_MATCH_B = (1 << FOC1B)
@@ -125,7 +125,7 @@ namespace AVRAssist {
         // INPUT CAPTURE NOISE CANCEL bits. These end up in bits ICNC1 & 
         // ICES1 in the TCCR1B register.
         //------------------------------------------------------------------
-        enum inputCapture_t {
+        enum inputCapture_t  : uint8_t {
             INPCAP_NOISE_CANCEL_OFF_FALLING_EDGE = 0,
             INPCAP_NOISE_CANCEL_OFF_RISING_EDGE = (1 << ICES1),
             INPCAP_NOISE_CANCEL_ON_FALLING_EDGE = (1 << ICNC1),

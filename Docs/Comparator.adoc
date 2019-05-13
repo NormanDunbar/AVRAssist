@@ -135,10 +135,10 @@ The comparator has a single interrupt, but it has thee separate manners of firin
 |===
 
 | *Parameter* | *Description*
-| INT_DISABLED | The comparator will not raise any interrupts. The code is assumed to be monitoring bit `ACO` in register `ACSR`.
-| INT_TOGGLE   | When bit `ACO` in register `ACSR` toggles, the `ANALOG_COMP` interrupt will be fired.
-| INT_FALLING  | When bit `ACO` in register `ACSR` changes from `HIGH` to `LOW`, the `ANALOG_COMP` interrupt will be fired.
-| INT_RISING   | When bit `ACO` in register `ACSR` changes from `LOW` to `HIGH`, the `ANALOG_COMP` interrupt will be fired.
+| INT_NONE     | The comparator will not raise any interrupts. The code is assumed to be monitoring bit `ACO` in register `ACSR`.
+| INT_TOGGLE   | When bit `ACO` in register `ACSR` toggles, the `ANALOG_COMP` interrupt will be fired, you are required to create an interrupt handler for it - `ISR(ANALOG_COMP)`.
+| INT_FALLING  | When bit `ACO` in register `ACSR` changes from `HIGH` to `LOW`, the `ANALOG_COMP` interrupt will be fired, you are required to create an interrupt handler for it - `ISR(ANALOG_COMP)`.
+| INT_RISING   | When bit `ACO` in register `ACSR` changes from `LOW` to `HIGH`, the `ANALOG_COMP` interrupt will be fired, you are required to create an interrupt handler for it - `ISR(ANALOG_COMP)`.
 
 |===
 
@@ -146,6 +146,10 @@ An example of initialising the comparator using this parameter is:
 
 [source, cpp]
 ----
+ISR(ANALOG_COMP) {
+    ...
+}
+
 comparator::initialise(comparator::REFV_EXTERNAL,
                        comparator::SAMPLE_AIN1, 
                        comparator::INT_TOGGLE);             <1>

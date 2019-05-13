@@ -24,7 +24,7 @@ namespace AVRAssist {
         // Where do we get our reference voltage from? Either pin AIN0 or
         // the internal bandgap reference voltage.
         //------------------------------------------------------------------
-        enum reference_t {
+        enum reference_t : uint8_t {
             REFV_EXTERNAL = 0,    // Pin AIN0, Arduino pin D6.
             REFV_INTERNAL
         };
@@ -33,7 +33,7 @@ namespace AVRAssist {
         // Where do we get our sampled voltage from? Either pin AIN1 or any
         // of the ADC channels 0 through 7, but not the internal channel 8.
         //------------------------------------------------------------------
-        enum sample_t {
+        enum sample_t  : uint8_t {
             SAMPLE_ADC0 = 0,
             SAMPLE_ADC1,
             SAMPLE_ADC2,
@@ -48,8 +48,8 @@ namespace AVRAssist {
         //------------------------------------------------------------------
         // If we require interrupts, what variation do we need/want?
         //------------------------------------------------------------------
-        enum interrupt_t {
-            INT_DISABLED = 0,
+        enum interrupt_t  : uint8_t {
+            INT_NONE = 0,
             INT_TOGGLE = (1 << ACIE),                   //  8 aka 1000
             INT_FALLING = INT_TOGGLE | (1 << ACIS1),    // 10 aka 1010
             INT_RISING = INT_FALLING | (1 << ACIS0)     // 11 aka 1011

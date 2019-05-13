@@ -25,7 +25,7 @@ namespace AVRAssist {
         // TIMER MODES. Modes 4 and 6 are reserved and not used. The rest 
         // are simply used to index into the timerModes[][] array below.
         //------------------------------------------------------------------
-        enum {
+        enum  : uint8_t {
             MODE_NORMAL = 0,                        // Mode 0: Normal mode.
             MODE_PC_PWM_255,                        // Mode 1: Phase Correct PWM, TOP = 255
             MODE_CTC_OCR2A,                         // Mode 2: CTC, TOP = OCR2A.
@@ -58,7 +58,7 @@ namespace AVRAssist {
         // CLOCK SOURCES. 
         // These bits end up in CS22, CS21, CS20 in register TCCR2B.
         //------------------------------------------------------------------
-        enum clockSource_t {
+        enum clockSource_t  : uint8_t {
             CLK_DISABLED,                           // No clock running
             CLK_PRESCALE_1,                         // Prescaler = divide by 1
             CLK_PRESCALE_8,                         // Prescaler = divide by 8
@@ -75,7 +75,7 @@ namespace AVRAssist {
         // Pin OC2A = Physical pin 12, Arduino pin D6 or AVR pin PD6.
         // Pin OC2B = Physical pin 11, Arduino pin D5 or AVR pin PD5.
         //------------------------------------------------------------------
-        enum compareMatch_t {
+        enum compareMatch_t  : uint8_t {
             OC2X_DISCONNECTED = 0,                  // Nothing - OC2A, OC2B both disconnected.
             OC2A_TOGGLE  = (1 << COM0A0),           // OC2A will toggle.
             OC2A_CLEAR   = (1 << COM0A1),           // OC2A will clear.
@@ -88,7 +88,7 @@ namespace AVRAssist {
         //------------------------------------------------------------------
         // INTERRUPTS to enable. These bits end up in the TIMSK2 register.
         //------------------------------------------------------------------
-        enum interrupt_t {
+        enum interrupt_t  : uint8_t {
             INT_NONE = 0,
             INT_COMPARE_MATCH_A = (1 << OCIE2A),
             INT_COMPARE_MATCH_B = (1 << OCIE2B),
@@ -99,7 +99,7 @@ namespace AVRAssist {
         // FORCE COMPARE bits. These bits end up in bits FOC2A & FOC2B in 
         // the TCCR2B register.
         //------------------------------------------------------------------
-        enum forceCompare_t {
+        enum forceCompare_t  : uint8_t {
             FORCE_COMPARE_NONE = 0,
             FORCE_COMPARE_MATCH_A = (1 << FOC2A),
             FORCE_COMPARE_MATCH_B = (1 << FOC2B)

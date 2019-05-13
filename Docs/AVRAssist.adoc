@@ -9,7 +9,7 @@
 :tocdepth: 5
 :icons: font
 :sectnums:
-:source-highlighter: coderay
+:source-highlighter: rouge
 //
 // The following are abbreviations, also, defined by the system is
 // :cpp: C++

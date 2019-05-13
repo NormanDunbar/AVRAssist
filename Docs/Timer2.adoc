@@ -141,10 +141,10 @@ This parameter allows you to indicate what actions you want the {avr} to perform
 | OC2X_DISCONNECTED | The two `OC2x` pins will not be affected when the timer count matches either `OCR2A` or `OCR2B`. This is the default.
 | OC2A_TOGGLE       | Pin `OC2A` will toggle  when `TCNT2` matches `OCR2A`.
 | OC2A_CLEAR        | Pin `OC2A` will be reset `LOW` when `TCNT2` matches `OCR2A`.
-| OC2A_SET          | Pin `OC2A` will be reset `HIGH` when `TCNT2` matches `OCR2A`.
+| OC2A_SET          | Pin `OC2A` will be set `HIGH` when `TCNT2` matches `OCR2A`.
 | OC2B_TOGGLE       | Pin `OC2B` will toggle  when `TCNT2` matches `OCR2B`.  You cannot use `OC2B_TOGGLE` in anything but NORMAL and CTC modes.
 | OC2B_CLEAR        | Pin `OC2B` will be reset `LOW` when `TCNT2` matches `OCR2B`.
-| OC2B_SET          | Pin `OC2B` will be reset `HIGH` when `TCNT2` matches `OCR2B`.
+| OC2B_SET          | Pin `OC2B` will be set `HIGH` when `TCNT2` matches `OCR2B`.
 
 |===
 
@@ -172,9 +172,9 @@ Timer/counter 2 has three interrupts that can be enabled and these are:
 
 | *Parameter* | *Description*
 | INT_NONE            | No interrupts are required on this timer/counter. This is the default.
-| INT_COMPARE_MATCH_A | The `TIMER2 COMPA` interrupt is to be enabled. You are required to create an ISR function to handle it.
-| INT_COMPARE_MATCH_B | The `TIMER2 COMPB` interrupt is to be enabled. You are required to create an ISR function to handle it.
-| INT_OVERFLOW        | The `TIMER2 OVF` interrupt is to be enabled. You are required to create an ISR function to handle it. 
+| INT_COMPARE_MATCH_A | The `TIMER2 COMPA` interrupt is to be enabled. You are required to create an ISR function to handle it - `ISR(TIMER2_COMPA_vect)`.
+| INT_COMPARE_MATCH_B | The `TIMER2 COMPB` interrupt is to be enabled. You are required to create an ISR function to handle it - `ISR(TIMER2_COMPB_vect)`.
+| INT_OVERFLOW        | The `TIMER2 OVF` interrupt is to be enabled. You are required to create an ISR function to handle it - `ISR(TIMER2_OVF_vect)`. 
 
 |===
 

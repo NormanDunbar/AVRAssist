@@ -150,10 +150,10 @@ This parameter allows you to indicate what actions you want the {avr} to perform
 | OC1X_DISCONNECTED | The two `OC1x` pins will not be affected when the timer count matches either `OCR1A` or `OCR1B`. This is the default.
 | OC1A_TOGGLE       | Pin `OC1A` will toggle  when `TCNT1` matches `OCR1A`.
 | OC1A_CLEAR        | Pin `OC1A` will be reset `LOW` when `TCNT1` matches `OCR1A`.
-| OC1A_SET          | Pin `OC1A` will be reset `HIGH` when `TCNT1` matches `OCR1A`.
+| OC1A_SET          | Pin `OC1A` will be set `HIGH` when `TCNT1` matches `OCR1A`.
 | OC1B_TOGGLE       | Pin `OC1B` will toggle  when `TCNT1` matches `OCR1B`.
 | OC1B_CLEAR        | Pin `OC1B` will be reset `LOW` when `TCNT1` matches `OCR1B`.
-| OC1B_SET          | Pin `OC1B` will be reset `HIGH` when `TCNT1` matches `OCR1B`.
+| OC1B_SET          | Pin `OC1B` will be set `HIGH` when `TCNT1` matches `OCR1B`.
 
 |===
 
@@ -181,10 +181,10 @@ Timer/counter 1 has four interrupts that can be enabled and these are:
 
 | *Parameter* | *Description*
 | INT_NONE            | No interrupts are required on this timer/counter. This is the default.
-| INT_CAPTURE         | The `TIMER1 CAPT` (input capture) interrupt is to be enabled. You are required to create an ISR function to handle it.
-| INT_COMPARE_MATCH_A | The `TIMER1 COMPA` interrupt is to be enabled. You are required to create an ISR function to handle it.
-| INT_COMPARE_MATCH_B | The `TIMER1 COMPB` interrupt is to be enabled. You are required to create an ISR function to handle it.
-| INT_OVERFLOW        | The `TIMER1 OVF` interrupt is to be enabled. You are required to create an ISR function to handle it. 
+| INT_CAPTURE         | The `TIMER1 CAPT` (input capture) interrupt is to be enabled. You are required to create an ISR function to handle it - `ISR(TIMER1_CAPT_vect)`.
+| INT_COMPARE_MATCH_A | The `TIMER1 COMPA` interrupt is to be enabled. You are required to create an ISR function to handle it - `ISR(TIMER1_COMPA_vect)`.
+| INT_COMPARE_MATCH_B | The `TIMER1 COMPB` interrupt is to be enabled. You are required to create an ISR function to handle it - `ISR(TIMER1_COMPB_vect)`.
+| INT_OVERFLOW        | The `TIMER1 OVF` interrupt is to be enabled. You are required to create an ISR function to handle it - `ISR(TIMER1_OVF_vect)`. 
 
 |===
  

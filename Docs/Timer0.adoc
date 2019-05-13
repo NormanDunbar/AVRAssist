@@ -141,10 +141,10 @@ This parameter allows you to indicate what actions you want the {avr} to perform
 | OCOX_DISCONNECTED | The two `OC0x` pins will not be affected when the timer count matches either `OCR0A` or `OCR0B`.
 | OCOA_TOGGLE       | Pin `OC0A` will toggle  when `TCNT0` matches `OCR0A`.
 | OCOA_CLEAR        | Pin `OC0A` will be reset `LOW` when `TCNT0` matches `OCR0A`.
-| OCOA_SET          | Pin `OC0A` will be reset `HIGH` when `TCNT0` matches `OCR0A`.
+| OCOA_SET          | Pin `OC0A` will be set `HIGH` when `TCNT0` matches `OCR0A`.
 | OCOB_TOGGLE       | Pin `OC0B` will toggle  when `TCNT0` matches `OCR0B`. You cannot use `OC0B_TOGGLE` in anything but NORMAL and CTC modes.
 | OCOB_CLEAR        | Pin `OC0B` will be reset `LOW` when `TCNT0` matches `OCR0B`.
-| OCOB_SET          | Pin `OC0B` will be reset `HIGH` when `TCNT0` matches `OCR0B`.
+| OCOB_SET          | Pin `OC0B` will be set `HIGH` when `TCNT0` matches `OCR0B`.
 
 |===
 
@@ -174,8 +174,8 @@ The various interrupt options are:
 
 | *Parameter* | *Description*
 | INT_NONE            | No interrupts are required on this timer/counter. This is the default.
-| INT_COMPARE_MATCH_A | The `TIMER0 COMPA` interrupt is to be enabled. You are required to create an ISR function to handle it.
-| INT_COMPARE_MATCH_B | The `TIMER0 COMPB` interrupt is to be enabled. You are required to create an ISR function to handle it.
+| INT_COMPARE_MATCH_A | The `TIMER0 COMPA` interrupt is to be enabled. You are required to create an ISR function to handle it - `ISR(TIMER0_COMPA_vect)`.
+| INT_COMPARE_MATCH_B | The `TIMER0 COMPB` interrupt is to be enabled. You are required to create an ISR function to handle it - `ISR(TIMER0_COMPB_vect)`.
 | INT_OVERFLOW        | The `TIMER0 OVF` interrupt is to be enabled. You are required to create an ISR function to handle it. This interrupt's handler cannot be defined in your own code in an Arduino IDE development system as the handler, `ISR(TIMER0_OVF_vect)` has been created internally and added to your code behind the scenes.
 
 |===
