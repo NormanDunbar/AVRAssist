@@ -18,7 +18,7 @@ namespace AVRAssist {
     //----------------------------------------------------------------------
     // Analogue Comparator setup.
     //----------------------------------------------------------------------
-    namespace comparator {
+    namespace Comparator {
         
         //------------------------------------------------------------------
         // Where do we get our reference voltage from? Either pin AIN0 or

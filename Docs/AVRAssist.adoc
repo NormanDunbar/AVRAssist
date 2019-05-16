@@ -76,5 +76,7 @@ include::Timer2.adoc[]
 
 include::Comparator.adoc[]
 
+include::Watchdog.adoc[]
+
 [appendix]
 include::Foibles.adoc[]

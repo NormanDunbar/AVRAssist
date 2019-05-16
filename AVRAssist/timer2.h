@@ -145,5 +145,5 @@ namespace AVRAssist {
   
 }  // End of AVRAssist namespace.
 
-#endif // __TIMER0_H__
+#endif // __TIMER2_H__
 

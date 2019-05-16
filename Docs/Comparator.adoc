@@ -38,9 +38,9 @@ using namespace AVRAssist;
 
 ...
 
-comparator::initialise(comparator::REFV_EXTERNAL, 
-                       comparator::SAMPLE_AIN1, 
-                       comparator::INT_TOGGLE);
+Comparator::initialise(Comparator::REFV_EXTERNAL, 
+                       Comparator::SAMPLE_AIN1, 
+                       Comparator::INT_TOGGLE);
 ...
 ----
 
@@ -84,9 +84,9 @@ You use this parameter to define the reference voltage to be used, as follows:
 
 [source, cpp]
 ----
-comparator::initialise(comparator::REFV_EXTERNAL,           <1>
-                       comparator::SAMPLE_AIN1, 
-                       comparator::INT_TOGGLE);
+Comparator::initialise(Comparator::REFV_EXTERNAL,           <1>
+                       Comparator::SAMPLE_AIN1, 
+                       Comparator::INT_TOGGLE);
 ----
 <1> The comparator will be set up using the `AIN0` pin as its reference voltage.
 
@@ -120,9 +120,9 @@ You use this parameter to define which pin will be use to source the voltage to 
 
 [source, cpp]
 ----
-comparator::initialise(comparator::REFV_EXTERNAL,
-                       comparator::SAMPLE_AIN1,             <1>
-                       comparator::INT_TOGGLE);
+Comparator::initialise(Comparator::REFV_EXTERNAL,
+                       Comparator::SAMPLE_AIN1,             <1>
+                       Comparator::INT_TOGGLE);
 ----
 <1> The comparator will be set up using the `AIN1` pin as its sample voltage source.
 
@@ -150,8 +150,8 @@ ISR(ANALOG_COMP) {
     ...
 }
 
-comparator::initialise(comparator::REFV_EXTERNAL,
-                       comparator::SAMPLE_AIN1, 
-                       comparator::INT_TOGGLE);             <1>
+Comparator::initialise(Comparator::REFV_EXTERNAL,
+                       Comparator::SAMPLE_AIN1, 
+                       Comparator::INT_TOGGLE);             <1>
 ----
 <1> The comparator will be set up so that the interrupt will be fired whenever the `ACO` bit changes.

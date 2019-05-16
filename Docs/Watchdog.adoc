@@ -1,0 +1,124 @@
+== Watchdog Timer
+
+This AVR Assistant allows the simple setup and configuration of the Watchdog Timer on your AVR (specifically, ATmega328) micro controller. This code works in the Arduino IDE or free standing for use with some other development system, such as PlatformIO. It has not been tested on other micro controllers. (Although the ATMega168 should work.)
+
+
+To use this assistant, you must include the `watchdog.h` header file:
+
+[source, c++]
+----
+#include "watchdog.h"
+----
+
+Following this, you may, optionally, `use` the `AVRAssist` namespace:
+
+[source, cpp]
+----
+using namespace AVRAssist;
+----
+
+[WARNING]
+====
+The spelling of `AVRAssist` must be as shown above.
+====
+
+If you choose not to do this, you must prefix everything with `AVRAssist::` or the code will not work.
+
+
+=== Watchdog Timer Initialisation
+
+Once the header file has been included, the watchdog can be initialised as follows:
+
+[source,cpp]
+----
+#include <watchdog.h>
+
+using namespace AVRAssist;
+
+...
+
+Watchdog::initialise(Watchdog::WDT_TIMEOUT_8S, 
+                     Watchdog::WDT_MODE_INTERRUPT);
+...
+----
+
+The above sets the watchdog to timeout every 8 seconds, and to run in Watchdog Interrupt mode, WDI. In this mode, there is no need to call the `wdt_reset()` function before the timeout occurs, that is only required in `WDT_MODE_RESET` and `WDT_MODE_BOTH` modes, and is simply to prevent the watchdog from resetting the device.
+
+
+==== Initialisation Function
+
+The header file exposes a single `initialise` function which is defined as follows:
+
+[source, cpp]
+----
+void initialise(const timeout_t timeout, 
+                const mode_t mode);
+----
+
+
+==== Timeout Setting
+
+The watchdog timer has 10 available timeouts ranging from 16 milliSeconds up to 8 seconds. These are as follows:
+
+
+[width=100%, cols="25%,75%"]
+|===
+
+| *Parameter* | *Description*
+| WDT_TIMEOUT_16MS  | Watchdog times out after 16 milliSeconds.
+| WDT_TIMEOUT_32MS  | Watchdog times out after 32 milliSeconds.
+| WDT_TIMEOUT_64MS  | Watchdog times out after 64 milliSeconds.
+| WDT_TIMEOUT_125MS | Watchdog times out after 125 milliSeconds.
+| WDT_TIMEOUT_250MS | Watchdog times out after 250 milliSeconds.
+| WDT_TIMEOUT_500MS | Watchdog times out after 500 milliSeconds.
+| WDT_TIMEOUT_1S    | Watchdog times out after 1 Seconds.
+| WDT_TIMEOUT_2S    | Watchdog times out after 2 Seconds.
+| WDT_TIMEOUT_4S    | Watchdog times out after 4 Seconds.
+| WDT_TIMEOUT_8S    | Watchdog times out after 8 Seconds.
+
+|===
+
+You use this parameter to define the timeout period of the watchdog timer, as follows:
+
+[source, cpp]
+----
+Watchdog::initialise(Watchdog::WDT_TIMEOUT_8S,              <1>
+                     Watchdog::WDT_MODE_INTERRUPT);
+----
+<1> The watchdog will be set up so that it times out every 8 seconds.
+
+
+==== Watchdog Mode
+
+The watchdog timer can run in one of three modes, as described in the following table:
+
+[width=100%, cols="30%,70%"]
+|===
+
+| *Parameter* | *Description*
+| WDT_MODE_RESET     | The device will be reset when the watchdog times out, unless reset.
+| WDT_MODE_INTERRUPT | The device will execute an interrupt, `ISR(WDT_vect)`, when it times out. It will not reset the device.
+| WDT_MODE_BOTH      | The device will fire the interrupt, `ISR(WDT_vect)`, when it times out _the first time. It will then reset the device when it times out for the second time - unless reset.
+
+|===
+
+[NOTE]
+====
+
+====
+
+You use this parameter to define the mode in which the watchdog timer is to run.
+
+[source, cpp]
+----
+Watchdog::initialise(Watchdog::WDT_TIMEOUT_8S, 
+                     Watchdog::WDT_MODE_INTERRUPT);         <1>
+----
+<1> The watchdog will be set up so that it times out every 8 seconds, firing an interrupt but allowing the device to continue operation without being reset.
+
+[NOTE]
+====
+If the mode contains a reset, `WDT_MODE_RESET` and `WDT_MODE_BOTH`, then there must be a call to `wdt_reset()` before the timeout period expires, otherwise the watchdog will reset the system - on the very first timeout in `WDT_MODE_RESET` or on the second in `WDT_MODE_BOTH`.
+====
+
+
