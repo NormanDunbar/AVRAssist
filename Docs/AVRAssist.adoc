@@ -6,7 +6,7 @@
 :doctype: book
 :media: prepress
 :toc: left
-:tocdepth: 5
+:toclevels: 5
 :icons: font
 :sectnums:
 :source-highlighter: rouge
