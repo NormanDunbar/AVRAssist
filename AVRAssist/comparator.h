@@ -42,7 +42,7 @@ namespace AVRAssist {
             SAMPLE_ADC5,
             SAMPLE_ADC6,
             SAMPLE_ADC7,
-            SAMPLE_AIN1
+            SAMPLE_AIN1         // Pin AIN1, Arduino pin D7.
         };
         
         //------------------------------------------------------------------
@@ -61,7 +61,7 @@ namespace AVRAssist {
         //------------------------------------------------------------------
         void initialise(const reference_t referenceSource, 
                         const sample_t sampleSource, 
-                        const interrupt_t interruptMode = 0) {
+                        const interrupt_t interruptMode = INT_NONE) {
 
             //--------------------------------------------------------------
             // Validation...
@@ -73,8 +73,9 @@ namespace AVRAssist {
             if (sampleSource > SAMPLE_AIN1) {
                     return;
             }
-            
-            if (interruptMode != INT_DISABLED && interruptMode != INT_TOGGLE &&
+
+            // In case someone ORs them together. It happens!
+            if (interruptMode != INT_NONE && interruptMode != INT_TOGGLE &&
                 interruptMode != INT_FALLING && interruptMode != INT_RISING) {
                 return;
             }
@@ -134,7 +135,8 @@ namespace AVRAssist {
             // Interrupts...
             // ADIE is already disabled, so INT_DISABLED has no effect.
             //--------------------------------------------------------------
-            ACSR &= 0xF0 |= interruptMode;
+            ACSR &= 0xF0;
+            ACSR |= interruptMode;
         }
 
     } // End of comparator namespace.
