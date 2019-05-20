@@ -202,6 +202,10 @@ Timer2::initialise(Timer2::MODE_FAST_PWM_255,
 
 <2> You can `or` various values together to create the full set of required interrupts, as in this example.
 
+[WARNING]
+====
+On an Arduino board, global interrupts are enabled as part of the Arduino initialisation code. Under other development systems, PlatformIO for example, this is not the case. Therefore, if you are developing on a system other than the Arduino IDE, and you wish to use interrupts with this timer/counter, then your code must enable global interrupts by calling the `sei()` function. `Timer2.h` will not automatically enable interrupts for you, as it is possible that this could interfere with other code in your application.
+====
 
 ==== Force Compare Options
 

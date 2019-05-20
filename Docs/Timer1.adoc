@@ -207,6 +207,11 @@ Timer1::initialise(Timer1::MODE_CTC_OCR1A,
 You don't have to activate the input capture interrupt (`INT_CAPTURE`) if you don't wish to, you can poll (not always a good idea) bit `ICF1` in register `TIFR1` and when it is set, an event has occurred.
 ====
 
+[WARNING]
+====
+On an Arduino board, global interrupts are enabled as part of the Arduino initialisation code. Under other development systems, PlatformIO for example, this is not the case. Therefore, if you are developing on a system other than the Arduino IDE, and you wish to use interrupts with this timer/counter, then your code must enable global interrupts by calling the `sei()` function. `Timer1.h` will not automatically enable interrupts for you, as it is possible that this could interfere with other code in your application.
+====
+
 ==== Force Compare Options
 
 Timer/counter 1 can be forced to run a compare of `TCNT1` against `OCR1A` and/or `OCR1B` at any time. However, it is unlikely that this will be particularly useful - Famous last words? When actioned, the output pins `OC1A` (pin 15, Arduino `D9`) and `OC1B` (pin 16, Arduino `D10`) will be toggled or set according to the <<Compare Match Options, compare match options>> as long as that parameter is not set to `OC1X_DISCONNECTED` and the pin(s) in question are set to toggle, clear or set.

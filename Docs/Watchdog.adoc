@@ -121,4 +121,8 @@ Watchdog::initialise(Watchdog::WDT_TIMEOUT_8S,
 If the mode contains a reset, `WDT_MODE_RESET` and `WDT_MODE_BOTH`, then there must be a call to `wdt_reset()` before the timeout period expires, otherwise the watchdog will reset the system - on the very first timeout in `WDT_MODE_RESET` or on the second in `WDT_MODE_BOTH`.
 ====
 
+[WARNING]
+====
+On an Arduino board, global interrupts are enabled as part of the Arduino initialisation code. Under other development systems, PlatformIO for example, this is not the case. Therefore, if you are developing on a system other than the Arduino IDE, and you wish to use interrupts with the watchdog, then your code must enable global interrupts by calling the `sei()` function. `Watchdog.h` will not automatically enable interrupts for you, as it is possible that this could interfere with other code in your application, however, it will preserve the existing state of the global interrupt flag in the status register when `Watchdog::initialise()` is called. If global interrupts are enabled they will remian enabled, and if disabled, they will remain that way too.
+====
 

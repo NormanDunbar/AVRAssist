@@ -213,6 +213,12 @@ Of course, if you change this timer/counter's initialisation away from that of t
 <2> You can `or` various values together to create the full set of required interrupts, as in this example.
 
 
+[WARNING]
+====
+On an Arduino board, global interrupts are enabled as part of the Arduino initialisation code. Under other development systems, PlatformIO for example, this is not the case. Therefore, if you are developing on a system other than the Arduino IDE, and you wish to use interrupts with this timer/counter, then your code must enable global interrupts by calling the `sei()` function. `Timer0.h` will not automatically enable interrupts for you, as it is possible that this could interfere with other code in your application.
+====
+
+
 ==== Force Compare Options
 
 Timer/counter 0 can be forced to run a compare of `TCNT0` against `OCR0A` and/or `OCR0B` at any time. However, it is unlikely that this will be useful (Famous last words?) - the output pins `OC0A` (pin 12, Arduino `D6`) and `OC0B` (pin 11, Arduino `D5`) will be toggled or set according to the <<Compare Match Options, compare match options>> as long as that parameter is not set to `OCOX_DISCONNECTED` and the pin(s) in question are set to toggle, clear or set.

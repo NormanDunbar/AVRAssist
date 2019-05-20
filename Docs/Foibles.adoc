@@ -2,9 +2,57 @@
 
 The following foibles have been detected with the `AVRAssist` code. Some of these _may_ be able to be fixed in future, and if so, this appendix will be updated to show that such a thing has happened. Some might not be fixable.
 
+=== General - Interrupts
+
+When using interrupts in your code, there is one major difference when using the Arduino IDE and other development systems such as PlatformIO. In the Arduino IDE, all sketches are started with the global interrupts enabled. This is done so that the <<Timer 0 - Overflow Interrupt, Timer/Counter 0 overflow interrupt>> can be used to count up and maintain the `millis()` function and everything else that relies on it. The `Serial` interface also uses interrupts.
+
+With other development systems, which do not have the _hand holding_ of the Arduino IDE, this is not done. If your code needs interrupts, then it is up to your code to enable global interrupts at the appropriate time, by calling the `sei()` function. 
+
+`AVRAssist` cannot simply enable interrupts - for example, when you select that an interrupt be used - because there may be further initialisation in your code that needs to be done before the interrupts are enabled. For this reason, it is still the responsibility of your code to enable interrupts as and when required.
+
+=== General - Timers
+
+For some, currently unknown, reason, setting up timers in the Arduino IDE differs from setting them up in other development environments. Obviously, the Arduino _hand holding_ code, that happens in the background, has its own requirements for the various timer/counter and sets them up accordingly. `AnalogWrite()` for example, relies on the three timer//counters being set up correctly. However, it should be the case that calling `Timer1::initialise()`, for example, will _override_ all the Arduino settings and define the settings that your code requires.
+
+Strangely, this does not appear to happen correctly, although I have examined the generated assembly code, and it does appear to do the required setup, overwriting the setup created by the Arduino IDE, it causes some code not to work when compiled in the Arduino IDE. The following, for example, fails in the Arduino IDE:
+
+[source,cpp]
+----
+OCR1A = 31249;
+
+Timer1::initialise( Timer1::MODE_CTC_OCR1A,             // Timer Mode
+                    Timer1::CLK_PRESCALE_256,           // Clock Source
+                    Timer1::OC1A_TOGGLE                 // Compare Match
+                                                        // Remaining parameters default.
+                   );
+----
+
+However, it works perfectly in other development environment. The fix, is to initialise the time/counter first, then set the required value in `OCR1A` (in this case), as follows, which works in all environments:
+
+[source,cpp]
+----
+Timer1::initialise( Timer1::MODE_CTC_OCR1A,             // Timer Mode
+                    Timer1::CLK_PRESCALE_256,           // Clock Source
+                    Timer1::OC1A_TOGGLE                 // Compare Match
+                                                        // Remaining parameters default.
+                   );
+
+OCR1A = 31249;
+----
+
+It is possible that other timer/counter settings will be similarly affected.
+
 === Timer 0
 
-==== Timer 0 Overflow 
+==== Timer 0 -  General
+See the <<General - Timers>> section for details.
+
+
+==== Timer 0 -  Interrupts
+See the <<General - Interrupts>> section for details.
+
+==== Timer 0 - Overflow Interrupt
+
 The ISR for this timer 0 overflow _cannot_ be used when compiling code within the Arduino IDE. This is down to the fact that the Arduino IDE sets up its own ISR for this interrupt and if you (or I) define one for our own code, it will cause duplicate definition errors in the linker.
 
 This problem cannot be fixed in the `AVRAssist` code as it is caused by the Arduino IDE. The problem does not occur in PlatformIO, for example, where you can define your own ISR for this interrupt without any problems.
@@ -15,75 +63,43 @@ Redefining this interrupt in the Arduino IDE, if it actually was possible, would
 ====
 
 === Timer 1
-
-Setting up Timer 1, to automatically toggle `OC1A` or Arduino pin `D9` does not work in the Arduino IDE. The following code:
-
-
-[source,cpp]
-----
-#include <timer1.h>
-
-using namespace AVRAssist;
-
-int main() {
-    // Make OC1A an output pin.
-    DDRB |= (1 << DDB1);
-    
-    // Set up the required flash rate.
-    OCR1A = whatever;
-
-    // Initialise Timer 1.
-    Timer1::initialise(Timer1::MODE_CTC_OCR1A,     // Timer mode;
-                       Timer1::CLK_PRESCALE_1024,  // Clock source;
-                       Timer1::OC1A_TOGGLE         // Toggle OC1A on compare match;
-                      );
-                      
-
-    while (1) {
-        ; // do nothing.
-    }
-}
-----
-
-Works perfectly in PlatformIO, and the LED attached to the pin does indeed flash at the required rate. So far, so good. Converting the above for the Arduino IDE, as follows, simply toggles the LED attached to `D9` on, and leaves it on. It never flashes.
+==== Timer 0 -  General
+See the <<General - Timers>> section for details.
 
 
-[source,cpp]
-----
-#include <timer1.h>
-
-using namespace AVRAssist;
-
-void setup() {
-    // D9 is required to be an output pin.
-    pinMode(9, OUTPUT);
-    
-    // Set up the required flash rate.
-    OCR1A = whatever;
-
-    // Initialise Timer 1.
-    Timer1::initialise(Timer1::MODE_CTC_OCR1A,      // Timer mode;
-                       Timer1::CLK_PRESCALE_1024,   // Clock source;
-                       Timer1::OC1A_TOGGLE,         // Toggle OC1A on compare match;
-                       );
-}
-
-void loop() {
-    // Nothing to do here...
-    // Timer 1 should take care of flashing the LED on D9.
-}    
-----
-
-This is an interesting foible because the `AVRAssist` code takes over the timer completely and reinitialises it to the mode given from the ground up, overwriting everything set up by the Arduino IDE. I've even gone so far as to examine the compiled assembly language for the sketch and compared it with the code in the output from PlatformIO, and they are, to all intents, identical - at least, the assembly language generated by the `AVRAssist` code are identical.
-
-Time will tell if this foible can be fixed by the `AVRAssist` code or not. Watch this space.
+==== Timer 0 -  Interrupts
+See the <<General - Interrupts>> section for details.
 
 
 
 === Timer 2
+==== Timer 0 -  General
+See the <<General - Timers>> section for details.
+
+
+==== Timer 0 -  Interrupts
+See the <<General - Interrupts>> section for details.
+
 
 
 === Analogue Comparator
 
-=== ???
+==== Analogue Comparator -  Interrupts
+See the <<General - Interrupts>> section for details.
+
+
+=== Watchdog
+While this is not a foible, as such, it is repeated here for information - the Data Sheet doesn't make things exactly clear on the matter.
+
+When using the watchdog in WDI, Watchdog Interrupt, mode, there is no need to call the `wdt_reset()` function. If you are running in this mode, the WDT will not reset the device after the timeout period. If, on the other hand, you are running the WDT in either of the modes that do involve potentially resetting the device, then you must call `wdt_reset()` within the timeout period to avoid said resets. In summary then:
+
+* WDT_MODE_INTERRUPT - there is no reset, so no need to call `wdt_reset()`;
+* WDT_MODE_RESET - there is a possibility of a reset, so your code _must_ call `wdt_reset()` before the defined timeout expires;
+* WDT_MODE_BOTH - there is a possibility of a reset, so your code _must_ call `wdt_reset()` before the defined timeout expires;
+
+==== Watchdog -  Interrupts
+See the <<General - Interrupts>> section for details.
+
+
+
 

@@ -155,3 +155,8 @@ Comparator::initialise(Comparator::REFV_EXTERNAL,
                        Comparator::INT_TOGGLE);             <1>
 ----
 <1> The comparator will be set up so that the interrupt will be fired whenever the `ACO` bit changes.
+
+[WARNING]
+====
+On an Arduino board, global interrupts are enabled as part of the Arduino initialisation code. Under other development systems, PlatformIO for example, this is not the case. Therefore, if you are developing on a system other than the Arduino IDE, and you wish to use interrupts with the comparator, then your code must enable global interrupts by calling the `sei()` function. `Comparator.h` will not automatically enable interrupts for you, as it is possible that this could interfere with other code in your application.
+====
