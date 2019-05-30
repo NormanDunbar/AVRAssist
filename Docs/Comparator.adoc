@@ -46,6 +46,14 @@ Comparator::initialise(Comparator::REFV_EXTERNAL,
 
 The above sets the comparator to use `AIN0`, pin 12, Arduino pin `D6` as the reference voltage, `AIN1`, pin 13, Arduino pin `D7` as the voltage to be sampled and compared, and an interrupt to fire whenever the comparator output toggles.
 
+[WARNING]
+====
+The ADC and the Analogue Comparator can both use the ADC's `MUX3:0` bits in the `ADMUX` register and also the `ADCSRB` register, where the comparator has the bit `ACME`. The code in this AVRAssistant preserves the setting of the comparator bit in `ADCSRB` to allow you to use the two devices. However, there are certain conditions that will affect the ability to use both devices:
+
+* If the comparator uses any of the `ADC0` through `ADC7` inputs, then you cannot use the ADC as it will be disconnected from the multiplexor by the comparator;
+* If the ADC is in use, the comparator can only be used if its reference voltage used the `AIN0` pin and it compares that with pin `AIN1`. These are Arduino pins `D6` and `D7`. Both devices can be used in this configuration.
+====
+
 ==== Initialisation Function
 
 The header file exposes a single `initialise` function which is defined as follows:
@@ -136,9 +144,9 @@ The comparator has a single interrupt, but it has thee separate manners of firin
 
 | *Parameter* | *Description*
 | INT_NONE     | The comparator will not raise any interrupts. The code is assumed to be monitoring bit `ACO` in register `ACSR`.
-| INT_TOGGLE   | When bit `ACO` in register `ACSR` toggles, the `ANALOG_COMP` interrupt will be fired, you are required to create an interrupt handler for it - `ISR(ANALOG_COMP)`.
-| INT_FALLING  | When bit `ACO` in register `ACSR` changes from `HIGH` to `LOW`, the `ANALOG_COMP` interrupt will be fired, you are required to create an interrupt handler for it - `ISR(ANALOG_COMP)`.
-| INT_RISING   | When bit `ACO` in register `ACSR` changes from `LOW` to `HIGH`, the `ANALOG_COMP` interrupt will be fired, you are required to create an interrupt handler for it - `ISR(ANALOG_COMP)`.
+| INT_TOGGLE   | When bit `ACO` in register `ACSR` toggles, the `ANALOG_COMP` interrupt will be fired, you are required to create an interrupt handler for it - `ISR(ANALOG_COMP_vect)`.
+| INT_FALLING  | When bit `ACO` in register `ACSR` changes from `HIGH` to `LOW`, the `ANALOG_COMP` interrupt will be fired, you are required to create an interrupt handler for it - `ISR(ANALOG_COMP_vect)`.
+| INT_RISING   | When bit `ACO` in register `ACSR` changes from `LOW` to `HIGH`, the `ANALOG_COMP` interrupt will be fired, you are required to create an interrupt handler for it - `ISR(ANALOG_COMP_vect)`.
 
 |===
 
@@ -146,7 +154,7 @@ An example of initialising the comparator using this parameter is:
 
 [source, cpp]
 ----
-ISR(ANALOG_COMP) {
+ISR(ANALOG_COMP_vect) {
     ...
 }
 

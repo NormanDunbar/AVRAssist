@@ -1,0 +1,438 @@
+== Analogue to Digital Converter
+
+This AVR Assistant allows the simple setup and configuration of the Analogue to Digital Converter (ADC) on your AVR (specifically, ATmega328) micro controller. This code works in the Arduino IDE - if you wish to bypass the `analogRead()` function call and go straight to the heart of the ADC - or free standing for use with some other development system, such as PlatformIO. It has not been tested on other micro controllers. (Although the ATMega168 should work.)
+
+The ADC's result is read in a number separate ways when a conversion has completed:
+
+* By reading all 10 bits from the `ADCW` pseudo-register;
++
+[source, c]
+----
+ADCResult = ADCW;
+----
+* By reading the `ADCL` register _first_ to get the low 8 bits of the result, and then the `ADCH` register is read to get the 2 high bits - this is best done when the result is right aligned, the default alignment;
++
+[source, c]
+----
+ADCResult = ADCL;
+ADCResult |= (ADCH << 8);
+----
+* By reading the `ADCH` register when the result is set to be left aligned, and you only want the top 8 bits, not all 10.
++
+[source, c]
+----
+ADCResult = ADCH;
+----
+
+
+[WARNING]
+====
+The ADC and the Analogue Comparator can both use the ADC's `MUX3:0` bits in the `ADMUX` register and also the `ADCSRB` register, where the comparator has the bit `ACME`. The code in this AVRAssistant preserves the setting of the comparator bit in `ADCSRB` to allow you to use the two devices. However, there are certain conditions that will affect the ability to use both devices:
+
+* If the comparator uses any of the `ADC0` through `ADC7` inputs, then you cannot use the ADC as it will be disconnected from the multiplexor by the comparator;
+* If the ADC is in use, the comparator can only be used if its reference voltage used the `AIN0` pin and it compares that with pin `AIN1`. These are Arduino pins `D6` and `D7`. Both devices can be used in this configuration.
+====
+
+To use this assistant, you must include the `adc.h` header file:
+
+[source, c++]
+----
+#include "adc.h"
+----
+
+Following this, you may, optionally, `use` the `AVRAssist` namespace:
+
+[source, cpp]
+----
+using namespace AVRAssist;
+----
+
+[WARNING]
+====
+The spelling of `AVRAssist` must be as shown above.
+====
+
+If you choose not to do this, you must prefix everything with `AVRAssist::` or the code will not work.
+
+The header file exposes the following two functions:
+
+[source, cpp]
+----
+void initialise(const reference_t referenceSource, 
+                const sample_t sampleSource, 
+                const interrupt_t interruptMode = INT_DISABLED,
+                const alignment_t alignment = ALIGN_RIGHT,
+                const prescaler_t prescaler = ADC_PRESCALE_128,
+                const autotrigger_t autoTriggerMode = AUTO_DISABLED,
+                const autosource_t autoTriggerSource = AUTO_FREE_RUNNING
+                );
+
+void start();
+----
+
+The `initialise()` function sets up and enables the ADC, while the `start()` function causes a single-shot conversation to be initiated, or, starts the ADC in free running mode. You can, even when set up to run under auto-triggering modes, take a reading from the ADC by calling `start()`.
+
+The default settings for the `initialise()` function are listed above. Only the first two parameters, the reference voltage source and the pin to be used as input, are required. The remainder have, hopefully, suitable default values.
+
+
+=== ADC Initialisation
+
+Once the header file has been included, the ADC can be _initialised_, but not yet _initiated_ unless auto-triggering is enabled, as follows:
+
+[source,cpp]
+----
+#include <adc.h>
+
+using namespace AVRAssist;
+
+...
+
+Adc::initialise(Adc::REFV_AVCC, 
+                Adc::SAMPLE_ADC0,
+                Adc::INT_DISABLED,
+                Adc::ALIGN_RIGHT,
+                Adc::ADC_PRESCALE_128,
+                Adc::AUTO_DISABLED,
+                Adc::AUTO_FREE_RUNNING
+                );
+...
+----
+
+The above sets the ADC to use:
+
+* The supply voltage to the `AVCC` pin as the reference voltage;
+* The `ADC0` input, Arduino pin `A0` AVR pin `PC0` as the voltage source to be compared with the reference;
+* No interrupts will be used, the code must therefore poll the `ADSC` bit in `ADCSRA` to check if a result is available;
+* The result will be aligned right, the default;
+* The `F_CPU` will be divided by 128 to correctly set the ADC Frequency into the range 50-200 KHz;
+* There will be no auto-triggering, thus the ADC is in single-shot mode. `AUTO_FREE_RUNNING` is ignored.
+
+As this initialisation is in single-shot mode, the code must call `Adc::start()` whenever it wants to start an ADC conversion, and as interrupts are not used, it must also poll bit `ADSC` in register `ADCSRA` to determine if a result is available.
+
+[NOTE]
+====
+After calling the `Adc::initialise()` function, you will need to call `Adc::ADCStart()` to actually initiate the first conversion. This is only required when you are using either the single shot, or, the free running mode of the ADC. The other modes will be initiated by the appropriate trigger event.
+
+Only the first two parameters to the `initialise()` function are mandatory, the remainder should have good enough defaults.
+====
+
+
+==== Reference Voltage Source
+
+The ADC can be configured to use one of three separate voltage sources as the reference voltage, these being:
+
+[width=100%, cols="25%,75%"]
+|===
+
+| *Parameter* | *Description*
+
+| REFV_AREF | AREF pin has the reference voltage
+| REFV_AVCC | AVCC pin has the reference voltage
+| REFV_BANDGAP | The reference is the internal 1.1V bandgap reference
+
+|===
+
+[WARNING]
+====
+The data sheet advises strongly, that you do not change to `REFV_AVCC` or `REFV_BANDGAP` if the `AREF` pin is connected to _any_ external source of voltage. You will let the magic blue smoke out if you do.
+
+Many of the 'breadboard Arduinos' on the internet, show the `AREF` pin connected to 5V - this is a bad thing if you ever configure the ADC (or the Analogue Comparator) to use either of the internal voltage sources as a reference.
+
+The only thing you should connect to the `AREF` pin is a 100nF capacitor to ground.
+====
+
+You use this parameter, which is mandatory, to define the reference voltage to be used, as follows:
+
+[source,cpp]
+----
+#include <adc.h>
+
+using namespace AVRAssist;
+
+...
+
+Adc::initialise(Adc::REFV_AVCC,             <1>
+                Adc::SAMPLE_ADC0,
+                Adc::INT_DISABLED,
+                Adc::ALIGN_RIGHT,
+                Adc::ADC_PRESCALE_128,
+                Adc::AUTO_DISABLED,
+                Adc::AUTO_FREE_RUNNING
+                );
+...
+----
+<1> The ADC will be set up using the voltage on pin `AVCC` as its reference voltage.
+
+
+==== Sample Voltage Source
+
+The ADC needs a second voltage source, this one is to be compared with the reference voltage described above. The following values are permitted:
+
+[width=100%, cols="30%,70%"]
+|===
+
+| *Parameter* | *Description*
+| SAMPLE_ADC0 | Compare the voltage on pin `PC0` (Arduino `A0`) with the reference voltage.
+| SAMPLE_ADC1 | Compare the voltage on pin `PC1` (Arduino `A1`) with the reference voltage.
+| SAMPLE_ADC2 | Compare the voltage on pin `PC2` (Arduino `A2`) with the reference voltage.
+| SAMPLE_ADC3 | Compare the voltage on pin `PC3` (Arduino `A3`) with the reference voltage.
+| SAMPLE_ADC4 | Compare the voltage on pin `PC4` (Arduino `A4`) with the reference voltage.
+| SAMPLE_ADC5 | Compare the voltage on pin `PC5` (Arduino `A5`) with the reference voltage.
+| SAMPLE_ADC6 | Compare the voltage on pin `ADC6` with the reference voltage. (SMD version only.)
+| SAMPLE_ADC7 | Compare the voltage on pin `ADC7` with the reference voltage. (SMD version only.)
+| SAMPLE_ADC8 | Compare the voltage on pin `AIN1` with the reference voltage.
+| SAMPLE_BANDGAP | Compare the internal 1.1V bandgap voltage with the reference voltage.
+| SAMPLE_GND | Compare `GND` with the reference voltage. The result is always zero.
+|===
+
+[NOTE]
+====
+The various dual inline versions of the ATmega328 do not have pins `ADC6` and `ADC7`, those two are only present on the surface mount versions. Some Arduino Uno clones have been built with a surface mount version of the ATmega328, and on those boards, _some_ manufacturers have connected these two pins to a header while others leave them unconnected.
+
+The last two options look a bit weird. However, it does allow you to see whether or not the ADC returns zero for a `GND` voltage, or, to determine if the internal 1.1V bandgap voltage is actually 1.1 when compared with some other reference voltage. On my Arduino Duemilanove, I get 1.1-1.2V when using `AVCC` as the reference, which is 5V.
+====
+
+You use this parameter to define which pin will be use to source the voltage to be compared against the reference voltage.
+
+[source,cpp]
+----
+#include <adc.h>
+
+using namespace AVRAssist;
+
+...
+
+Adc::initialise(Adc::REFV_AVCC, 
+                Adc::SAMPLE_ADC0,           <1>
+                Adc::INT_DISABLED,
+                Adc::ALIGN_RIGHT,
+                Adc::ADC_PRESCALE_128,
+                Adc::AUTO_DISABLED,
+                Adc::AUTO_FREE_RUNNING
+                );
+...
+----
+<1> The ADC will be set up to compare the voltage on Arduino pin `A0`, AVR pin `PC0` with the reference voltage.
+
+
+
+==== Interrupts
+The ADC has a single interrupt, which is fired when the ADC has completed a conversion and a result is available in `ADCH` and `ADCL`. The permitted values for this parameter, which is optional and defaults to `INT_DISABLED` are:
+
+[width=100%, cols="25%,75%"]
+|===
+
+| *Parameter* | *Description*
+| INT_DISABLED | The ADC will not raise any interrupts. The code is assumed to be monitoring bit `ACSC` in register `ADCSRA` to determine when the result is available.
+| INT_ENABLED  | When the ADC has completed a conversion, the `ADC` interrupt will be fired, you are required to create an interrupt handler for it - `ISR(ADC_vect)`.
+
+|===
+
+An example of initialising the ADC using this parameter is:
+
+[source, cpp]
+----
+volatile uint16_t ADCResult = 0;
+
+...
+
+ISR(ADC_vect) {
+    ADCResult = ADCW;
+}
+
+...
+
+Adc::initialise(Adc::REFV_AVCC, 
+                Adc::SAMPLE_ADC0,
+                Adc::INT_ENABLED,           <1>
+                Adc::ALIGN_RIGHT,
+                Adc::ADC_PRESCALE_128,
+                Adc::AUTO_DISABLED,
+                Adc::AUTO_FREE_RUNNING
+                );
+...
+----
+<1> The ADC will be set up so that the interrupt will be fired whenever the ADC completes a conversion. This will cause the ISR to be executed and the conversion result will be copied into the global variable `ADCResult`.
+
+[WARNING]
+====
+On an Arduino board, global interrupts are enabled as part of the Arduino initialisation code. Under other development systems, PlatformIO for example, this is not the case. Therefore, if you are developing on a system other than the Arduino IDE, and you wish to use interrupts with the ADC, then your code must enable global interrupts by calling the `sei()` function. `adc.h` will not automatically enable interrupts for you, as it is possible that this could interfere with other code in your application.
+====
+
+
+==== Result Alignment
+
+The ADC's result can be right aligned, the default, or left aligned. The valid parameters for this input to the `Adc::initialise()` function are:
+
+
+
+The ADC, at least on the ATmega328P, has a 10 bit resolution, and returns the result of a conversion as a number between 0 (representing `GND`) and 1,023 representing whatever voltage has been used as the reference voltage. The result is too big to fit into a single register of 8 bits, so two bits will always be held in another register. The two registers are `ADCH` and `ADCL` for the high and low parts of the result.
+
+Depending on the requested alignment of the result, set by using `Adc::ALIGN_RIGHT` and `Adc::ALIGN_LEFT` (see below), these registers hold the following bits of the result:
+
+// If the backend is PDF then do this.
+ifdef::backend-pdf[]
+[width=60%, cols="33%33%33%", align = "center"]
+endif::[]
+
+// If the backend is html, then do this instead.
+ifdef::backend-html5[]
+[width=60%, cols="33%33%33%", float = "center"]
+endif::[]
+
+|===
+| *Alignment* | *Result ADCH* | *Result ADCL*
+
+| ALIGN_RIGHT ^| xxxxxx98 ^| 76543210
+| ALIGN_LEFT   ^| 98765432 ^| 10xxxxxx
+
+|===
+
+In the above, 'x' means we don't care about this bit of the result as it is outside the 10 bit resolution of the ADC.
+
+[width=100%, cols="25%,75%"]
+|===
+
+| *Parameter* | *Description*
+| ALIGN_RIGHT | This is the default for the ADC at power on/reset etc. The top 2 bits of the result will be found in `ADCH` and the lower 8 bits in `ADCL` as described above.
+| ALIGN_LEFT  | IN this alignment, The bottom 2 bits of the result will be found in `ADCL` and the higher 8 bits in `ADCH` as described above.
+
+|===
+
+
+An example of initialising the ADC using this parameter, which is optional and defaults to `Adc::ALIGN_RIGHT`, is:
+
+[source, cpp]
+----
+Adc::initialise(Adc::REFV_AVCC, 
+                Adc::SAMPLE_ADC0,
+                Adc::INT_DISABLED,
+                Adc::ALIGN_LEFT,           <1>
+                Adc::ADC_PRESCALE_128,
+                Adc::AUTO_DISABLED,
+                Adc::AUTO_FREE_RUNNING
+                );
+...
+----
+<1> The ADC will be set up so that the result of a conversion will be returned left aligned.
+
+
+==== ADC Prescaler
+
+The ADC is required to run with its clock speed somewhere in the range between 50 and 200 KHz. To this end, the ADC has its own prescaler that can be used to divide the `F_CPU` clock speed down to enable the ADC to operate in it's most preferred frequency range. If you need all 10 bits of the ADC result, then you must make sure that you configure the ADc to run at the desired frequency, however, you can enable it at a faster, or slower, clock speed if the full 10 bits are not necessary. Unfortunately, the Data Sheet doesn't specify how many bits of the result will be accurate at various speeds. It's probably best to stay in range then.
+
+The permitted values for this parameter are:
+
+[width=100%, cols="25%,75%"]
+|===
+
+| *Parameter* | *Description*
+
+| ADC_PRESCALE_1   | Divide `F_CPU` by 1
+| ADC_PRESCALE_2   | Divide `F_CPU` by 2
+| ADC_PRESCALE_4   | Divide `F_CPU` by 4
+| ADC_PRESCALE_8   | Divide `F_CPU` by 8
+| ADC_PRESCALE_16  | Divide `F_CPU` by 16
+| ADC_PRESCALE_32  | Divide `F_CPU` by 32
+| ADC_PRESCALE_64  | Divide `F_CPU` by 64
+| ADC_PRESCALE_128 | Divide `F_CPU` by 128
+
+|===
+
+The default for this parameter is `ADC_PRESCALE_128` as that is the most appropriate prescaler value for any Arduino running at 16 MHz or above. For devices running at 8 MHz, then `ADC_PRESCALE_64` is suitable and for 1 MHz devices, the factory default, `ADC_PRESCALE_8` is appropriate. Devices running at speeds above 24MHz cannot configure a prescaler that will allow the ADC to operate at it desired frequency.
+
+An example of initialising the ADC using this optional parameter is:
+
+[source, cpp]
+----
+Adc::initialise(Adc::REFV_AVCC, 
+                Adc::SAMPLE_ADC0,
+                Adc::INT_DISABLED,
+                Adc::ALIGN_LEFT,
+                Adc::ADC_PRESCALE_128,      <1>
+                Adc::AUTO_DISABLED,
+                Adc::AUTO_FREE_RUNNING
+                );
+...
+----
+<1> The ADC will be set up so that the `F_CPU` clock is divided by 128 to obtain the ADC clock frequency..
+
+
+==== Auto Triggering
+
+The ADC can be left to fire off a conversion any time that a certain event happens. This is called auto-triggering and allows other parts of the micro-controller to initiate a conversion. There are two cases when the ADC must be started manually in code:
+
+* When running in single-shot mode (`Adc::AUTO_DISABLED`);
+* When running in auto-triggering mode with the trigger source set to `Adc::AUTO_FREE_RUNNING`.
+
+The permitted values for this parameter are:
+
+[width=100%, cols="25%,75%"]
+|===
+
+| *Parameter* | *Description*
+| AUTO_DISABLED | The ADC will run in single-shot mode. It will not carry out a conversion until manually initiated in code.
+| AUTO_ENABLED  | The ADC will be running in auto-triggering mode. If the trigger is `AUTO_FREE_RUNNING` then the ADC will not begin running until manually started in code.
+
+|===
+
+An example of initialising the ADC using this optional parameter is:
+
+[source, cpp]
+----
+Adc::initialise(Adc::REFV_AVCC, 
+                Adc::SAMPLE_ADC0,
+                Adc::INT_DISABLED,
+                Adc::ALIGN_LEFT,
+                Adc::ADC_PRESCALE_128,
+                Adc::AUTO_ENABLED,          <1>
+                Adc::AUTO_FREE_RUNNING
+                );
+...
+----
+<1> The ADC will be set up so that it will be triggered automatically, depending on the setting of the following parameter.
+
+
+==== Auto Trigger Source
+
+When the ADC is configured to run in auto-triggering mode, there must be a source trigger that will initiate an ADC conversion, without necessarily requiring the conversion to be started manually by code.
+
+The permitted values for this parameter are:
+
+[width=100%, cols="35%,65%"]
+|===
+
+| *Parameter* | *Description*
+
+| AUTO_FREE_RUNNING     | Free Running, requires manual start, but will continue initiating new conversions as soon as the current one completes.
+| AUTO_COMPARATOR       | The Analogue comparator will initiate a conversion when it's `ACO` bit goes positive. (1~binary~)
+| AUTO_INT0             | External interrupt 0
+| AUTO_TIMER0_MATCH_A   | Timer/counter 0 compare match A
+| AUTO_TIMER0_OVERFLOW  | Timer/counter 0 overflow
+| AUTO_TIMER1_MATCH_B   | Timer/counter 1 compare match B
+| AUTOI_TIMER1_OVERFLOW | Timer/counter 1 overflow
+| AUTO_TIMER1_CAPTURE   | Timer/counter 1 input capture
+
+|===
+
+The data sheet advises that the ADC will be automatically triggered whenever the triggering event shows a positive edge. Whatever that means given the above triggering sources!
+
+In `AUTO_FREE_RUNNING` mode, there is no automatic start, the ADC must be initiated with a manual start request. However, after the first conversion completes, the ADC will trigger itself to keep on making readings as soon as the current one completes.
+
+The default for this parameter is `AUTO_FREE_RUNNING` but this has no effect unless the previous parameter specified `AUTO_ENABLED`.
+
+An example of initialising the ADC using this optional parameter is:
+
+[source, cpp]
+----
+Adc::initialise(Adc::REFV_AVCC, 
+                Adc::SAMPLE_ADC0,
+                Adc::INT_DISABLED,
+                Adc::ALIGN_LEFT,
+                Adc::ADC_PRESCALE_128,
+                Adc::AUTO_ENABLED,
+                Adc::AUTO_FREE_RUNNING      <1>
+                );
+...
+----
+<1> The ADC will be set up so that after the manual initiation, it will continue to make conversions as soon as one finishes. In this mode it's advised to use an interrupt to indicate when your code can grab the current result from the ADC.
