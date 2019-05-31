@@ -124,34 +124,42 @@ namespace AVRAssist {
             }
             
             //--------------------------------------------------------------
-            // Cannot use ADC8 unless REFV_BANDGAP is also selected.
+            // Cannot use ADC8 unless REFV_BANDGAP is also selected and 
+            // AUTO_DISABLE is also selected.
             //--------------------------------------------------------------
-            if (referenceVoltage != REFV_BANDGAP &&
-                sampleSource == SAMPLE_ADC8) {
-                    return;
-            }
-            
-            //--------------------------------------------------------------
-            // Don't allow any reserved inputs to be used.
-            //--------------------------------------------------------------
-            if (sampleSource > SAMPLE_GND ||
-                (sampleSource < SAMPLE_BANDGAP && 
-                 sampleSource < SAMPLE_ADC8)) {
+            if (sampleSource == SAMPLE_ADC8 &&
+                referenceVoltage != REFV_BANDGAP &&
+                autoTriggerMode == AUTO_ENABLED) {
                     return;
             }
 
+            //--------------------------------------------------------------
+            // Don't allow any reserved inputs to be used. These fit between
+            // SAMPLE_ADC8 (0b1000) and SAMPLE_BANDGAP (0b1110).
+            //--------------------------------------------------------------
+            if (sampleSource > SAMPLE_GND ||
+                (sampleSource < SAMPLE_BANDGAP && 
+                 sampleSource > SAMPLE_ADC8)) {
+                    return;
+            }
            
             
             //--------------------------------------------------------------
             // Initial enabling of the ADC.
+            // * Turn on power, just in case;
+            // * Set reference, alignment and source;
+            // * Enable auto trigger source, if required;
+            // * Power off the digital input buffer, as appropriate;
+            // * Set prescaler, interrupt, auto trigger if required, and 
+            //   enable the ADC.
             //--------------------------------------------------------------
             PRR &= ~(1 << PRADC);   // Power enabled to the ADC.
             ADMUX = referenceSource | alignment | sampleSource;
             ADCSRB &= ~(1 << ACME); // Preserve Analogue Comparator bit.
             
             // Auto-triggering? Set the auto-trigger source.
-            if (autotriggerMode == AUTO_ENABLED) {
-                ADCSRB |= autotriggerSource;
+            if (autoTriggerMode == AUTO_ENABLED) {
+                ADCSRB |= autoTriggerSource;
             }
             
             // Power off the digital input buffer.
@@ -160,7 +168,7 @@ namespace AVRAssist {
             }
 
             // Last, before starting it, enable it all.
-            ADCSRA = (1 << ADEN) | prescaler | interruptMode | autotriggerMode;
+            ADCSRA = (1 << ADEN) | prescaler | interruptMode | autoTriggerMode;
         }
         
         

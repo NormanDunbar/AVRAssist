@@ -74,6 +74,35 @@ The `initialise()` function sets up and enables the ADC, while the `start()` fun
 
 The default settings for the `initialise()` function are listed above. Only the first two parameters, the reference voltage source and the pin to be used as input, are required. The remainder have, hopefully, suitable default values.
 
+=== ADC Initiation
+
+Once the ADC has been <<ADC Initialisation, initialised>>, some modes of operation need it to be explicitly "told" to start a conversion. These modes are:
+
+* Single-shot, ie, no auto-triggering is enabled;
+* Auto-triggering in Free Running Mode, where the first conversions has to be manually initiated.
+
+The other auto-triggering modes will initiate a conversion whenever the triggering event occurs.
+
+To manually initiate a conversion, use the following code:
+
+[source, cpp]
+----
+#include <adc.h>
+
+using namespace AVRAssist;
+
+...
+// Initialise the ADC.
+Adc::initialise(...);
+...
+
+// Ready to take a reading from the ADC.
+Adc::start();
+...
+----
+
+The following section explains the various parameters that affect how the ADC is initialised.
+
 
 === ADC Initialisation
 
@@ -121,14 +150,14 @@ Only the first two parameters to the `initialise()` function are mandatory, the 
 
 The ADC can be configured to use one of three separate voltage sources as the reference voltage, these being:
 
-[width=100%, cols="25%,75%"]
+[width=100%, cols="20%,80%"]
 |===
 
 | *Parameter* | *Description*
 
-| REFV_AREF | AREF pin has the reference voltage
-| REFV_AVCC | AVCC pin has the reference voltage
-| REFV_BANDGAP | The reference is the internal 1.1V bandgap reference
+| REFV_AREF | AREF pin has the reference voltage.
+| REFV_AVCC | AVCC pin has the reference voltage.
+| REFV_BANDGAP | The reference is the internal 1.1V bandgap reference. This must be selected if the <<Sample Voltage Source, sample source>> is `ADC8`.
 
 |===
 
@@ -163,12 +192,16 @@ Adc::initialise(Adc::REFV_AVCC,             <1>
 ----
 <1> The ADC will be set up using the voltage on pin `AVCC` as its reference voltage.
 
+[NOTE]
+====
+When using  the `SAMPLE_ADC8` input, see <<Sample Voltage Source, below>>, the reference voltage must be the internal bandgap 1.1v reference.
+====
 
 ==== Sample Voltage Source
 
 The ADC needs a second voltage source, this one is to be compared with the reference voltage described above. The following values are permitted:
 
-[width=100%, cols="30%,70%"]
+[width=100%, cols="25%,75%"]
 |===
 
 | *Parameter* | *Description*
@@ -180,7 +213,7 @@ The ADC needs a second voltage source, this one is to be compared with the refer
 | SAMPLE_ADC5 | Compare the voltage on pin `PC5` (Arduino `A5`) with the reference voltage.
 | SAMPLE_ADC6 | Compare the voltage on pin `ADC6` with the reference voltage. (SMD version only.)
 | SAMPLE_ADC7 | Compare the voltage on pin `ADC7` with the reference voltage. (SMD version only.)
-| SAMPLE_ADC8 | Compare the voltage on pin `AIN1` with the reference voltage.
+| SAMPLE_ADC8 | Use the internal temperature sensor. The reference voltage must be `REFV_BANDGAP` in this case.
 | SAMPLE_BANDGAP | Compare the internal 1.1V bandgap voltage with the reference voltage.
 | SAMPLE_GND | Compare `GND` with the reference voltage. The result is always zero.
 |===
@@ -188,6 +221,8 @@ The ADC needs a second voltage source, this one is to be compared with the refer
 [NOTE]
 ====
 The various dual inline versions of the ATmega328 do not have pins `ADC6` and `ADC7`, those two are only present on the surface mount versions. Some Arduino Uno clones have been built with a surface mount version of the ATmega328, and on those boards, _some_ manufacturers have connected these two pins to a header while others leave them unconnected.
+
+Input `SAMPLE_ADC8`  is the internal temperature sensor built in to the micro-controller. When using that input, you must select the internal bandgap 1.1V <<Reference Voltage Source, reference voltage>>. It cannot be used in auto-triggering mode.
 
 The last two options look a bit weird. However, it does allow you to see whether or not the ADC returns zero for a `GND` voltage, or, to determine if the internal 1.1V bandgap voltage is actually 1.1 when compared with some other reference voltage. On my Arduino Duemilanove, I get 1.1-1.2V when using `AVCC` as the reference, which is 5V.
 ====
@@ -219,7 +254,7 @@ Adc::initialise(Adc::REFV_AVCC,
 ==== Interrupts
 The ADC has a single interrupt, which is fired when the ADC has completed a conversion and a result is available in `ADCH` and `ADCL`. The permitted values for this parameter, which is optional and defaults to `INT_DISABLED` are:
 
-[width=100%, cols="25%,75%"]
+[width=100%, cols="20%,80%"]
 |===
 
 | *Parameter* | *Description*
@@ -262,11 +297,7 @@ On an Arduino board, global interrupts are enabled as part of the Arduino initia
 
 ==== Result Alignment
 
-The ADC's result can be right aligned, the default, or left aligned. The valid parameters for this input to the `Adc::initialise()` function are:
-
-
-
-The ADC, at least on the ATmega328P, has a 10 bit resolution, and returns the result of a conversion as a number between 0 (representing `GND`) and 1,023 representing whatever voltage has been used as the reference voltage. The result is too big to fit into a single register of 8 bits, so two bits will always be held in another register. The two registers are `ADCH` and `ADCL` for the high and low parts of the result.
+The ADC, at least on the ATmega328P, has a 10 bit resolution, and returns the result of a conversion as a number between 0 (representing `GND`) and 1,023 representing whatever voltage has been used as the reference voltage. The result is too big to fit into a single register of 8 bits, so two bits will always be held in another register. The two registers are `ADCH` and `ADCL` for the high and low parts of the result. The ADC's result can be right aligned, the default, or left aligned. 
 
 Depending on the requested alignment of the result, set by using `Adc::ALIGN_RIGHT` and `Adc::ALIGN_LEFT` (see below), these registers hold the following bits of the result:
 
@@ -290,7 +321,9 @@ endif::[]
 
 In the above, 'x' means we don't care about this bit of the result as it is outside the 10 bit resolution of the ADC.
 
-[width=100%, cols="25%,75%"]
+The valid options for this optional parameter to `Adc::initialise()` are:
+
+[width=100%, cols="20%,80%"]
 |===
 
 | *Parameter* | *Description*
@@ -339,7 +372,35 @@ The permitted values for this parameter are:
 
 |===
 
-The default for this parameter is `ADC_PRESCALE_128` as that is the most appropriate prescaler value for any Arduino running at 16 MHz or above. For devices running at 8 MHz, then `ADC_PRESCALE_64` is suitable and for 1 MHz devices, the factory default, `ADC_PRESCALE_8` is appropriate. Devices running at speeds above 24MHz cannot configure a prescaler that will allow the ADC to operate at it desired frequency.
+The default for this parameter is `ADC_PRESCALE_128` as that is the most appropriate prescaler value for any Arduino running at 16 MHz or above. For devices running at 8 MHz, then `ADC_PRESCALE_64` is suitable and for 1 MHz devices, the factory default, `ADC_PRESCALE_8` is appropriate. Devices running at speeds above 26MHz cannot configure a prescaler that will allow the ADC to operate at its desired frequency. The following  table gives a number of potential `F_CPU` frequency ranges and the appropriate prescaler to keep the ADC running at its desired speed.
+
+
+// If the backend is PDF then do this.
+ifdef::backend-pdf[]
+[width=50%, cols="30%,70%", align = "center"]
+endif::[]
+
+// If the backend is html, then do this instead.
+ifdef::backend-html5[]
+[width=50%, cols="30%,70%", float = "center"]
+endif::[]
+|===
+
+^| *F_CPU* ^| *Prescaler*
+
+^| 1     ^| 8
+^| 2-3   ^| 16
+^| 4-6   ^| 32
+^| 7-12  ^| 64
+^| 13-25 ^| 128 
+^| 26+   ^| No prescaler available.
+
+|===
+
+[NOTE]
+====
+Obviously, not all frequencies within the ranges given above are available for `F_CPU`, but the above are the ranges where the given prescaler applies. Who knows, there might be someone out there using a 555 timer, or similar, to generate some weird and wonderful clocks!
+====
 
 An example of initialising the ADC using this optional parameter is:
 
@@ -360,14 +421,15 @@ Adc::initialise(Adc::REFV_AVCC,
 
 ==== Auto Triggering
 
-The ADC can be left to fire off a conversion any time that a certain event happens. This is called auto-triggering and allows other parts of the micro-controller to initiate a conversion. There are two cases when the ADC must be started manually in code:
+The ADC can be left to fire off a conversion any time that a certain event happens. This is called auto-triggering and allows other parts of the micro-controller to initiate a conversion. There are three cases when the ADC must be started manually in code:
 
 * When running in single-shot mode (`Adc::AUTO_DISABLED`);
-* When running in auto-triggering mode with the trigger source set to `Adc::AUTO_FREE_RUNNING`.
+* When running in auto-triggering mode with the trigger source set to `Adc::AUTO_FREE_RUNNING`;
+* When using the internal temperature sensor - `SAMPLE_ADC8`.
 
 The permitted values for this parameter are:
 
-[width=100%, cols="25%,75%"]
+[width=100%, cols="20%,80%"]
 |===
 
 | *Parameter* | *Description*
@@ -392,6 +454,11 @@ Adc::initialise(Adc::REFV_AVCC,
 ----
 <1> The ADC will be set up so that it will be triggered automatically, depending on the setting of the following parameter.
 
+[NOTE]
+====
+You cannot use any of these modes when the <<Sample Voltage Source, sample voltage input>> is selected as `SAMPLE_ADC8` as the internal temperature sensor cannot be run in auto-triggering mode.
+====
+
 
 ==== Auto Trigger Source
 
@@ -399,19 +466,19 @@ When the ADC is configured to run in auto-triggering mode, there must be a sourc
 
 The permitted values for this parameter are:
 
-[width=100%, cols="35%,65%"]
+[width=100%, cols="30%,70%"]
 |===
 
 | *Parameter* | *Description*
 
 | AUTO_FREE_RUNNING     | Free Running, requires manual start, but will continue initiating new conversions as soon as the current one completes.
-| AUTO_COMPARATOR       | The Analogue comparator will initiate a conversion when it's `ACO` bit goes positive. (1~binary~)
-| AUTO_INT0             | External interrupt 0
-| AUTO_TIMER0_MATCH_A   | Timer/counter 0 compare match A
-| AUTO_TIMER0_OVERFLOW  | Timer/counter 0 overflow
-| AUTO_TIMER1_MATCH_B   | Timer/counter 1 compare match B
-| AUTOI_TIMER1_OVERFLOW | Timer/counter 1 overflow
-| AUTO_TIMER1_CAPTURE   | Timer/counter 1 input capture
+| AUTO_COMPARATOR       | The Analogue comparator will initiate a conversion when the `ACO` bit goes `HIGH`.
+| AUTO_INT0             | External interrupt 0.
+| AUTO_TIMER0_MATCH_A   | Timer/counter 0 compare match A.
+| AUTO_TIMER0_OVERFLOW  | Timer/counter 0 overflow.
+| AUTO_TIMER1_MATCH_B   | Timer/counter 1 compare match B.
+| AUTOI_TIMER1_OVERFLOW | Timer/counter 1 overflow.
+| AUTO_TIMER1_CAPTURE   | Timer/counter 1 input capture.
 
 |===
 
@@ -435,4 +502,4 @@ Adc::initialise(Adc::REFV_AVCC,
                 );
 ...
 ----
-<1> The ADC will be set up so that after the manual initiation, it will continue to make conversions as soon as one finishes. In this mode it's advised to use an interrupt to indicate when your code can grab the current result from the ADC.
+<1> The ADC will be set up so that after the manual initiation, it will continue to make conversions as soon as one finishes. In this mode it's advised to use an interrupt to indicate when your code can grab the current result from the ADC. The example above doesn't do this and this implies that while it wants the ADC to free run, it's not really interested in grabbing _every_ conversion result. 
