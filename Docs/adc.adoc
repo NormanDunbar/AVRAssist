@@ -312,9 +312,9 @@ ifdef::backend-html5[]
 endif::[]
 
 |===
-| *Alignment* | *Result ADCH* | *Result ADCL*
+^| *Alignment* ^| *Result ADCH* ^| *Result ADCL*
 
-| ALIGN_RIGHT ^| xxxxxx98 ^| 76543210
+>| ALIGN_RIGHT ^| xxxxxx98 ^| 76543210
 | ALIGN_LEFT   ^| 98765432 ^| 10xxxxxx
 
 |===
@@ -328,7 +328,7 @@ The valid options for this optional parameter to `Adc::initialise()` are:
 
 | *Parameter* | *Description*
 | ALIGN_RIGHT | This is the default for the ADC at power on/reset etc. The top 2 bits of the result will be found in `ADCH` and the lower 8 bits in `ADCL` as described above.
-| ALIGN_LEFT  | IN this alignment, The bottom 2 bits of the result will be found in `ADCL` and the higher 8 bits in `ADCH` as described above.
+| ALIGN_LEFT  | In this alignment, The bottom 2 bits of the result will be found in `ADCL` and the higher 8 bits in `ADCH` as described above.
 
 |===
 
@@ -352,9 +352,13 @@ Adc::initialise(Adc::REFV_AVCC,
 
 ==== ADC Prescaler
 
-The ADC is required to run with its clock speed somewhere in the range between 50 and 200 KHz. To this end, the ADC has its own prescaler that can be used to divide the `F_CPU` clock speed down to enable the ADC to operate in it's most preferred frequency range. If you need all 10 bits of the ADC result, then you must make sure that you configure the ADc to run at the desired frequency, however, you can enable it at a faster, or slower, clock speed if the full 10 bits are not necessary. Unfortunately, the Data Sheet doesn't specify how many bits of the result will be accurate at various speeds. It's probably best to stay in range then.
+To obtain the full 10 bit resolution of the ADC result, it is required to run the ADC with its clock speed somewhere in the range between 50 KHz and 200 KHz. To this end, the ADC has its own prescaler which can be used to divide the system clock speed, `F_CPU`, down to enable the ADC to operate in it's most preferred frequency range. If you need all 10 bits of the ADC result, then you must make sure that you configure the ADC to run within the desired frequency range.
 
-The permitted values for this parameter are:
+You can enable the ADC clock speed to be faster, or slower, than the ideal frequency if the full 10 bit resolution of the result is not required. Unfortunately, the Data Sheet doesn't specify how many bits of the result will be accurate at different ADC clock frequencies. 
+
+It's probably best to stay in range.
+
+The permitted values for this parameter, which is optional, and default to `ADC_PRESCALE_128`, are:
 
 [width=100%, cols="25%,75%"]
 |===
@@ -372,7 +376,9 @@ The permitted values for this parameter are:
 
 |===
 
-The default for this parameter is `ADC_PRESCALE_128` as that is the most appropriate prescaler value for any Arduino running at 16 MHz or above. For devices running at 8 MHz, then `ADC_PRESCALE_64` is suitable and for 1 MHz devices, the factory default, `ADC_PRESCALE_8` is appropriate. Devices running at speeds above 26MHz cannot configure a prescaler that will allow the ADC to operate at its desired frequency. The following  table gives a number of potential `F_CPU` frequency ranges and the appropriate prescaler to keep the ADC running at its desired speed.
+The default for this parameter is `ADC_PRESCALE_128` as that is the most appropriate prescaler value for any Arduino running at 16 MHz or above. For devices running at 8 MHz, then `ADC_PRESCALE_64` is suitable and for 1 MHz devices, the factory default, `ADC_PRESCALE_8` is appropriate. Devices running at speeds above 26MHz cannot configure a prescaler that will allow the ADC to operate at its desired frequency. 
+
+The following  table gives a number of potential `F_CPU` frequency ranges and the appropriate prescaler to keep the ADC running at its ideal speed.
 
 
 // If the backend is PDF then do this.
@@ -486,7 +492,7 @@ The data sheet advises that the ADC will be automatically triggered whenever the
 
 In `AUTO_FREE_RUNNING` mode, there is no automatic start, the ADC must be initiated with a manual start request. However, after the first conversion completes, the ADC will trigger itself to keep on making readings as soon as the current one completes.
 
-The default for this parameter is `AUTO_FREE_RUNNING` but this has no effect unless the previous parameter specified `AUTO_ENABLED`.
+The default for this parameter is `AUTO_FREE_RUNNING` but this has no effect unless the <<Auto Triggering, auto trigger>> parameter specified `AUTO_ENABLED`.
 
 An example of initialising the ADC using this optional parameter is:
 
