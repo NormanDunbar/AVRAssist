@@ -1,0 +1,27 @@
+ADC Example
+===========
+
+The example in this folder initialises the ADC with a prescaler of divide by 128, 
+using ADC0 (Arduino A0, AVR PC0) as the input pin and AVCC as the reference voltage.
+The ADC interrupt is used to copy the ADC reading into a variable each time a new
+value is available.
+
+Timer1 is initialised to use a divide by 64 clock source in 8 bit phase correct PWM
+mode with OC1A (Arduino D9, AVR pin PB1) set to clear on TCNT1 matching OCR1A. this is
+effectively the Arduino's analogWrite() function.
+
+With a 10K potentiometer attached to 5V and GND and the wiper attached to pin ADC0/A0/PC0
+and an LED's anode attached to pin D9/PB1 via a 560 Ohm resistor, and cathode to GND,
+turning the pot causes the LED to brighten and dim accordingly.
+
+Connections
+-----------
+
+5V -> Potentiometer pin 1.
+GND -> Potentiometer pin 3.
+Arduino A0, AVR PC0 -> Potentiometer pin 2 (wiper).
+Arduino D9, AVR PB1 -> 560 Ohm resistor, pin 1.
+560 Ohm resistor pin 2 -> LED Anode (longer lead).
+LED cathode -> GND.
+
+See ADC.* in the Fritzing folder.

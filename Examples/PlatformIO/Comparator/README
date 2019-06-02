@@ -1,0 +1,43 @@
+Comparator Example
+==================
+
+The example in this folder initialises the Analogue Comparator with the reference
+voltage on Arduino D6, AVR AIN0, and the sample voltage on Arduino D7, AVR AIN1. The
+interrupt is enabled and set to fire when the ACO bit toggles from HIGH to LOW or 
+LOW to HIGH.
+
+The interrupt routine simple sets Arduino D13 (builtin LED), AVR pin PB5, to the 
+state of the ACO bit.
+
+A voltage divider is set up between VCC and GND. I used a pair of 560 Ohm resistors
+joined in series with the mid-point connected to Arduino D6, AIN0, as the reference
+voltage - roughly one half of VCC.
+
+With a 10K potentiometer attached to 5V and GND and the wiper attached to pin AIN1, 
+Arduino D7, and an LED's anode attached to pin D13/PB5 via a 560 Ohm resistor, and 
+cathode to GND, turning the pot causes the LED to turn on and off depending on the
+state of the ACO bit whihc itself is toggled by the voltage on D7/AIN1 as compared 
+to D6/AIN0.
+
+Connections
+-----------
+
+Voltage divider
+~~~~~~~~~~~~~~~
+
+5V -> 560 Ohm resistor, R1, pin 1.
+560 Ohm resistor, R1, pin 2 - > Arduino D6, AVR AIN0.
+560 Ohm resistor, R1, pin 2 - > 560 Ohm resistor, R2, pin 1.
+560 Ohm resistor, R2, pin 2 -> GND.
+
+Comparator
+~~~~~~~~~~
+
+5V -> Potentiometer pin 1.
+GND -> Potentiometer pin 3.
+Arduino D7, AVR AIN1 -> Potentiometer pin 2 (wiper).
+Arduino D13, AVR PB1 -> 560 Ohm resistor, R3, pin 1.
+560 Ohm resistor, R3, pin 2 -> LED Anode (longer lead).
+LED cathode -> GND.
+
+See Comparator.* in the Fritzing folder.

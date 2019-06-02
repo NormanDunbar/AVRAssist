@@ -1,0 +1,17 @@
+Timer Example
+=============
+
+The example in this folder initialises the 16 bit Timer/counter 1 running in 
+CTC+OCR1A mode (Cleare Timer on Compare with OCR1A as TOP) with a divide by 256 
+clock source and pin OCRA, Arduino pin D9, set to toggle on compare match.
+
+OCR1A ia set to 31249 to get about 1 second flash rate.
+
+Connections
+-----------
+
+Arduino D9, AVR PB1 -> 560 Ohm resistor pin 1.
+560 Ohm resistor pin 2 -> LED Anode (longer lead).
+LED cathode -> GND.
+
+See Timer.* in the Fritzing folder.

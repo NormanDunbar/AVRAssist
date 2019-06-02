@@ -1,0 +1,16 @@
+Watchdog Example
+================
+
+The example in this folder initialises the Watchdog Timer to
+fire an interrupt every 2 seconds. The interrupt will toggle 
+the Arduino's built in LED on pin D13 which for an AVR is pin
+PB5.
+
+Connections
+-----------
+
+Arduino D13, AVR PB5 -> 560 Ohm resistor pin 1.
+560 Ohm resistor pin 2 -> LED Anode (longer lead).
+LED cathode -> GND.
+
+See Watchdog.* in the Fritzing folder.
