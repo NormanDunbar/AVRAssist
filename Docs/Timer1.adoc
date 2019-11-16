@@ -40,7 +40,6 @@ Timer1::initialise(Timer1::MODE_CTC_OCR1A,              // Timer mode;
                    Timer1::CLK_PRESCALE_1024,           // Clock source;
                    Timer1::OC1A_TOGGLE,                 // OC1A, OC1B actions on compare match;
                    Timer1::INT_NONE,
-                   Timer1::FORCE_COMPARE_NONE,          // Force Compare required?
                    Timer1::INPCAP_NOISE_CANCEL_OFF_FALLING_EDGE    // Disable input capture.
                   );
 ...
@@ -58,8 +57,20 @@ void initialise(const uint8_t timerMode,
                 const clockSource_t clockSource, 
                 const compareMatch_t compareMatch = OC1X_DISCONNECTED, 
                 const interrupt_t enableInterrupts = INT_NONE,
-                const forceCompare_t forceCompare = FORCE_COMPARE_NONE,
                 const inputCapture_t inputCapture = INPCAP_NOISE_CANCEL_OFF_FALLING_EDGE)
+----
+
+=== Timer Force Compare
+
+The header file exposes another useful function, `forceCompare()`, which forces the timer to make a comparison between `TCNT1` and either `OCR1A` or `OCR1B`. This will, if correctly configured, cause pins `OC1A` or `OC1B` to be set, cleared or toggled depending on the setting of the `compareMatch` parameter (see above) at initialisation time.
+
+=== Force Compare Function
+
+The header file defines the `forceCompare()` function as follows:
+
+[source, cpp]
+----
+void initialise(const forceCompare_t forcePin = FORCE_COMPARE_NONE)
 ----
 
 ==== Timer Modes
@@ -97,7 +108,6 @@ Timer1::initialise(Timer1::MODE_CTC_OCR1A,                          <1>
                    Timer1::CLK_PRESCALE_1024,
                    Timer1::OC1A_TOGGLE,
                    Timer1::INT_NONE,
-                   Timer1::FORCE_COMPARE_NONE,
                    Timer1::INPCAP_NOISE_CANCEL_OFF_FALLING_EDGE
                   );
 ----
@@ -132,7 +142,6 @@ Timer1::initialise(Timer1::MODE_CTC_OCR1A,
                    Timer1::CLK_PRESCALE_1024,                       <1>
                    Timer1::OC1A_TOGGLE,
                    Timer1::INT_NONE,
-                   Timer1::FORCE_COMPARE_NONE,
                    Timer1::INPCAP_NOISE_CANCEL_OFF_FALLING_EDGE
                   );
 ----
@@ -165,7 +174,6 @@ Timer1::initialise(Timer1::MODE_CTC_OCR1A,
                    Timer1::CLK_PRESCALE_1024,
                    Timer1::OC1A_TOGGLE,                             <1>
                    Timer1::INT_NONE,
-                   Timer1::FORCE_COMPARE_NONE,
                    Timer1::INPCAP_NOISE_CANCEL_OFF_FALLING_EDGE
                   );
 ----
@@ -196,7 +204,6 @@ Timer1::initialise(Timer1::MODE_CTC_OCR1A,
                    Timer1::CLK_PRESCALE_1024,
                    Timer1::OC1A_TOGGLE,
                    Timer1::INT_NONE,                                <1>
-                   Timer1::FORCE_COMPARE_NONE,
                    Timer1::INPCAP_NOISE_CANCEL_OFF_FALLING_EDGE
                   );
 ----
@@ -214,14 +221,13 @@ On an Arduino board, global interrupts are enabled as part of the Arduino initia
 
 ==== Force Compare Options
 
-Timer/counter 1 can be forced to run a compare of `TCNT1` against `OCR1A` and/or `OCR1B` at any time. However, it is unlikely that this will be particularly useful - Famous last words? When actioned, the output pins `OC1A` (pin 15, Arduino `D9`) and `OC1B` (pin 16, Arduino `D10`) will be toggled or set according to the <<Compare Match Options, compare match options>> as long as that parameter is not set to `OC1X_DISCONNECTED` and the pin(s) in question are set to toggle, clear or set.
+Using the function `forceCompare()`, Timer/counter 1 can be forced to run a compare of `TCNT1` against `OCR1A` or `OCR1B` at any time using the `forceCompare()` function. However, it is unlikely that this will be useful (Famous last words?)
 
-These options, if enabled, are only ever actioned when the timer/counter is running in a mode other than any of the PWM modes. 
+The output pins `OC1A` (pin 15, Arduino `D9`) and `OC1B` (pin 16, Arduino `D10`) will be toggled, cleared or set according to the <<Compare Match Options, compare match options>> parameter at initialisation time, as long as that parameter is not set to `OC1X_DISCONNECTED` and the pin(s) in question are set to toggle, clear or set.
 
-When a forced comparison is carried out, no interrupts will fire, even if configured, and `TCNT1` will not be cleared in CTC mode with `OCR1A` as `TOP`. (Timer mode `MODE_CTC_OCR1A`.)
+When the forced comparison is carried out, no interrupts will fire, even if configured, and `TCNT1` will not be cleared in CTC mode with `OCR1A` as `TOP`. (Timer mode `MODE_CTC_OCR1A`.)
 
-Setting these bits at timer initialisation is perhaps not so useful, but at least the option is there. These bits are cleared immediately after the forced compare has taken place.
-
+Forcing a comparison sets either `FOC1A` or `FOC1B` in the `TCCR1B` register which forces `TCNT1` to be compared with either `OCR1A` or `OCR1B` depending on the parameter passed to the `forceCompare()` function. These bits are cleared after the forced compare has taken place.
 
 The options are:
 
@@ -230,26 +236,20 @@ The options are:
 
 | *Parameter* | *Description*
 | FORCE_COMPARE_NONE    | No forced comparisons will take place. This is the default.
-| FORCE_COMPARE_MATCH_A | A forced compare of `TCNT1` against `OCR1A` will be carried out.
-| FORCE_COMPARE_MATCH_B | A forced compare of `TCNT1` against `OCR1B` will be carried out.
+| FORCE_COMPARE_MATCH_A | A forced compare of `TCNT1` against `OCR1A` will be carried out.  You cannot use any force compare modes in anything but NORMAL and CTC modes.
+| FORCE_COMPARE_MATCH_B | A forced compare of `TCNT1` against `OCR1B` will be carried out.   You cannot use any force compare modes in anything but NORMAL and CTC modes.
 
 |===
 
-While the default for this parameter is to have no force compares enabled, `FORCE_COMPARE_NONE`, you can be explicit if you wish, and call the `initialise()` function as follows:
+You call the `forceCompare()` function as follows:
 
 [source, cpp]
 ----
-Timer1::initialise(Timer1::MODE_CTC_OCR1A,
-                   Timer1::CLK_PRESCALE_1024,
-                   Timer1::OC1A_TOGGLE,
-                   Timer1::INT_NONE,
-                   Timer1::FORCE_COMPARE_NONE,                      <1>
-                   Timer1::INPCAP_NOISE_CANCEL_OFF_FALLING_EDGE
-                  );
+Timer1::forceCompare(Timer1::FORCE_COMPARE_A);             <1>
 ----
-<1> The force compare parameter in action showing that we are not requiring a force compare as soon as the timer is initialised.
+<1> The force compare parameter in action showing that we are forcing a comparison between `TCNT1` and `OCR1A`. If they are equal at that point, and the timer is in the correct mode, then pin `OC1A` (Arduino pin `D9`) will be toggled, cleared or set depending on how the timer was initialised. 
 
-You can, of course, initialise the timer as above, and then, in your code at any time, simply set one or other of the `FOC1A` and `FOC1B` bits in register `TCCR1C` to force a compare to affect the output pins at that point, but remember, no interrupts will fire for the compare match in that case.
+
 
 
 ==== Input Capture
@@ -287,7 +287,6 @@ Timer1::initialise(Timer1::MODE_CTC_OCR1A,
                    Timer1::CLK_PRESCALE_1024,
                    Timer1::OC1A_TOGGLE,
                    Timer1::INT_NONE,
-                   Timer1::FORCE_COMPARE_NONE,
                    Timer1::INPCAP_NOISE_CANCEL_OFF_FALLING_EDGE     <1>
                   );
 ----

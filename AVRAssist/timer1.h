@@ -146,7 +146,6 @@ namespace AVRAssist {
                         const clockSource_t clockSource, 
                         const compareMatch_t compareMatch = OC1X_DISCONNECTED, 
                         const interrupt_t enableInterrupts = INT_NONE,
-                        const forceCompare_t forceCompare = FORCE_COMPARE_NONE,
                         const inputCapture_t inputCapture = INPCAP_NOISE_CANCEL_OFF_FALLING_EDGE) {
                             
             // Mode 13 is reserved, MODE_FAST_PWM_OCR1A is the upper limit.
@@ -154,9 +153,9 @@ namespace AVRAssist {
                 return;
             }
 
-            // Can't use OC1B_TOGGLE or FORCE COMPARE in anything but NORMAL and CTC modes.
+            // Can't use OC1B_TOGGLE in anything but NORMAL and CTC modes.
             if ((timerMode != MODE_NORMAL && timerMode != MODE_CTC_OCR1A && timerMode != MODE_CTC_ICR1) && 
-                (compareMatch == OC1B_TOGGLE || (forceCompare & FORCE_COMPARE_MATCH_A) || (forceCompare & FORCE_COMPARE_MATCH_B))) {
+                (compareMatch == OC1B_TOGGLE)) {
                 return;
             }
 
@@ -166,8 +165,28 @@ namespace AVRAssist {
             //------------------------------------------------------------------
             TCCR1A = (timerModes[timerMode][0]) | compareMatch;
             TCCR1B = (timerModes[timerMode][1]) | clockSource | inputCapture;
-            TCCR1C = forceCompare;
+            TCCR1C = 0;
             TIMSK1 = enableInterrupts;
+        }
+
+        void forceCompare(const forceCompare_t forcePin = FORCE_COMPARE_NONE) {
+            // Are we supposed to do anything?
+            if (forcePin  == FORCE_COMPARE_NONE) {
+                return;
+            }
+
+            // Can't use FORCE COMPARE in anything but NORMAL and CTC modes.
+            // Also, nothing will happen if we are running in OC1X_DISCONNECTED mode.
+            // No interrupts will fire at any time even if enabled. 
+            // Only pins D9/D10 (OC1A/OC1B) will be affected. They will be cleared/set/toggled 
+            // according to the setting in compareMatch.
+            if ((timerMode != MODE_NORMAL && timerMode != MODE_CTC_OCR1A && timerMode != MODE_CTC_ICR1)) {
+                return;
+            }
+
+            // Do it. This will set/clear/toggle pin OC1A or OC1B if TCNT1 = OCR1A or OCR1B
+            // depending on which pin is being forced.
+            TCCR1C |= forcePin;
         }
       
     }  // End of Timer1 namespace  

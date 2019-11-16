@@ -121,17 +121,18 @@ namespace AVRAssist {
         void initialise(const uint8_t timerMode, 
                         const clockSource_t clockSource, 
                         const compareMatch_t compareMatch = OCOX_DISCONNECTED, 
-                        const interrupt_t enableInterrupts = INT_NONE
-                        const forceCompare_t forceCompare = FORCE_COMPARE_NONE) {
+                        const interrupt_t enableInterrupts = INT_NONE) {
                             
             // Modes 4 and 6 are reserved, MODE_FAST_PWM_OCR0A is the upper limit.
-            if (timerMode > MODE_FAST_PWM_OCR0A || timerMode == MODE_RESERVED_4 || timerMode == MODE_RESERVED_6) {
+            if (timerMode > MODE_FAST_PWM_OCR0A || 
+                timerMode == MODE_RESERVED_4 || 
+                timerMode == MODE_RESERVED_6) {
                 return;
             }
 
-            // Can't use OC0B_TOGGLE or FORCE COMPARE  in anything but NORMAL and CTC modes.
+            // Can't use OC0B_TOGGLE in anything but NORMAL and CTC modes.
             if ((timerMode != MODE_NORMAL && timerMode != MODE_CTC_OCR0A) && 
-                (compareMatch == OC0B_TOGGLE || (forceCompare & FORCE_COMPARE_MATCH_A) || (forceCompare & FORCE_COMPARE_MATCH_B)) {
+                (compareMatch == OC0B_TOGGLE)) {
                 return;
             }
 
@@ -140,8 +141,28 @@ namespace AVRAssist {
             // from the Arduino init() function, for example.
             //------------------------------------------------------------------
             TCCR0A = (timerModes[timerMode][0]) | compareMatch;
-            TCCR0B = (timerModes[timerMode][1]) | clockSource | forceCompare;
+            TCCR0B = (timerModes[timerMode][1]) | clockSource;
             TIMSK0 = enableInterrupts;
+        }
+
+        void forceCompare(const forceCompare_t forcePin = FORCE_COMPARE_NONE) {
+            // Are we supposed to do anything?
+            if (forcePin  == FORCE_COMPARE_NONE) {
+                return;
+            }
+
+            // Can't use FORCE COMPARE in anything but NORMAL and CTC modes.
+            // Also, nothing will happen if we are running in OCOX_DISCONNECTED mode.
+            // No interrupts will fire at any time even if enabled. 
+            // Only pins D5/D6 (OC0A/OC0B) will be affected. They will be cleared/set/toggled 
+            // according to the setting in compareMatch.
+            if ((timerMode != MODE_NORMAL && timerMode != MODE_CTC_OCR0A)) {
+                return;
+            }
+
+            // Do it. This will set/clear/toggle pin OC0A or OC0B if TCNT0 = OCR0A or OCR0B
+            // depending on which pin is being forced.
+            TCCR0B |= forcePin;
         }
       
     }  // End of Timer0 namespace.

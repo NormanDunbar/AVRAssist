@@ -40,8 +40,7 @@ Timer2::initialise(Timer2::MODE_FAST_PWM_255,           // Timer mode;
                    Timer2::CLK_PRESCALE_64,             // Clock source;
                    Timer2::OC2X_DISCONNECTED,           // OC2A, OC2B actions on compare match;
                    Timer2::INT_COMPARE_MATCH_A |        // Interrupt(s) to enable;
-                        Timer2::INT_COMPARE_MATCH_B,
-                   Timer2::FORCE_COMPARE_NONE           // Force Compare required?
+                        Timer2::INT_COMPARE_MATCH_B
                   );
 ...
 ----
@@ -57,10 +56,21 @@ The header file exposes a single `initialise` function which is defined as follo
 void initialise(const uint8_t timerMode, 
                 const clockSource_t clockSource, 
                 const compareMatch_t compareMatch = OC2X_DISCONNECTED, 
-                const interrupt_t enableInterrupts = INT_NONE
-                const forceCompare_t forceCompare = FORCE_COMPARE_NONE) {
+                const interrupt_t enableInterrupts = INT_NONE) {
 ----
 
+=== Timer Force Compare
+
+The header file exposes another useful function, `forceCompare()`, which forces the timer to make a comparison between `TCNT2` and either `OCR2A` or `OCR2B`. This will, if correctly configured, cause pins `OC2A` or `OC2B` to be set, cleared or toggled depending on the setting of the `compareMatch` parameter (see above) at initialisation time.
+
+=== Force Compare Function
+
+The header file defines the `forceCompare()` function as follows:
+
+[source, cpp]
+----
+void initialise(const forceCompare_t forcePin = FORCE_COMPARE_NONE)
+----
 
 ==== Timer Modes
 
@@ -89,8 +99,7 @@ Timer2::initialise(Timer2::MODE_FAST_PWM_255,               <1>
                    Timer2::CLK_PRESCALE_64,
                    Timer2::OC2X_DISCONNECTED,
                    Timer2::INT_COMPARE_MATCH_A |
-                        Timer2::INT_COMPARE_MATCH_B,
-                   Timer2::FORCE_COMPARE_NONE
+                        Timer2::INT_COMPARE_MATCH_B
                   );
 ----
 <1> The timer mode parameter in action enabling the timer/counter in fast PWM mode with `TOP` defined by the value 255.
@@ -123,8 +132,7 @@ Timer2::initialise(Timer2::MODE_FAST_PWM_255,
                    Timer2::CLK_PRESCALE_64,                 <1>
                    Timer2::OC2X_DISCONNECTED,
                    Timer2::INT_COMPARE_MATCH_A |
-                        Timer2::INT_COMPARE_MATCH_B,
-                   Timer2::FORCE_COMPARE_NONE
+                        Timer2::INT_COMPARE_MATCH_B
                   );
 ----
 <1> The clock source parameter in action showing  that the timer/counter will be running at a speed defined by the system clock, `F_CPU`, divided by 64.
@@ -156,8 +164,7 @@ Timer2::initialise(Timer2::MODE_FAST_PWM_255,
                    Timer2::CLK_PRESCALE_64,
                    Timer2::OC2X_DISCONNECTED,               <1>
                    Timer2::INT_COMPARE_MATCH_A |
-                        Timer2::INT_COMPARE_MATCH_B,
-                   Timer2::FORCE_COMPARE_NONE
+                        Timer2::INT_COMPARE_MATCH_B
                   );
 ----
 <1> The compare match parameter in action showing that when `TCNT2` matches `OCR2A` or `OCR2B`, that no special effects take place. The pins `OC2A` (pin 17, Arduino `D11`) and `OC2B` (pin 5, Arduino `D3`) are not affected.
@@ -194,8 +201,7 @@ Timer2::initialise(Timer2::MODE_FAST_PWM_255,
                    Timer2::CLK_PRESCALE_64,
                    Timer2::OC2X_DISCONNECTED,
                    Timer2::INT_COMPARE_MATCH_A |            <1>
-                        Timer2::INT_COMPARE_MATCH_B,        <2>
-                   Timer2::FORCE_COMPARE_NONE
+                        Timer2::INT_COMPARE_MATCH_B         <2>
                   );
 ----
 <1> The interrupts parameter in action showing that the 'compare match A' and 'compare match B' interrupts are to be enabled, while the other interrupt, the timer/counter overflow interrupt, is not to be enabled.
@@ -209,11 +215,13 @@ On an Arduino board, global interrupts are enabled as part of the Arduino initia
 
 ==== Force Compare Options
 
-Timer/counter 2 can be forced to run a compare of `TCNT2` against `OCR2A` and/or `OCR2B` at any time. However, it is unlikely that this will be particularly useful - Famous last words? When actioned, the output pins `OC2A` (pin 17, Arduino `D11`) and `OC2B` (pin 5, Arduino `D3`) will be toggled or set according to the <<Compare Match Options, compare match options>> as long as that parameter is not set to `OC2X_DISCONNECTED` and the pin(s) in question are set to toggle, clear or set.
+Using the function `forceCompare()`, Timer/counter 2 can be forced to run a compare of `TCNT2` against `OCR2A` or `OCR2B` at any time using the `forceCompare()` function. However, it is unlikely that this will be useful (Famous last words?)
 
-When the forced comparison is carried out, no interrupts will fire, if configured, and `TCNT2` will not be cleared in CTC mode with `OCR2A` as `TOP`. (Timer mode `MODE_CTC_OCR2A`.)
+The output pins `OC2A` (pin 17, Arduino `D11`) and `OC2B` (pin 5, Arduino `D3`) will be toggled, cleared or set according to the <<Compare Match Options, compare match options>> parameter at initialisation time, as long as that parameter is not set to `OC2X_DISCONNECTED` and the pin(s) in question are set to toggle, clear or set.
 
-Setting these bits at timer initialisation is perhaps not so useful, but at least the option is there. These bits are cleared immediately after the forced compare has taken place.
+When the forced comparison is carried out, no interrupts will fire, even if configured, and `TCNT2` will not be cleared in CTC mode with `OCR2A` as `TOP`. (Timer mode `MODE_CTC_OCR2A`.)
+
+Forcing a comparison sets either `FOC2A` or `FOC2B` in the `TCCR2B` register which forces `TCNT2` to be compared with either `OCR2A` or `OCR2B` depending on the parameter passed to the `forceCompare()` function. These bits are cleared after the forced compare has taken place.
 
 The options are:
 
@@ -222,23 +230,16 @@ The options are:
 
 | *Parameter* | *Description*
 | FORCE_COMPARE_NONE    | No forced comparisons will take place. This is the default.
-| FORCE_COMPARE_MATCH_A | A forced compare of `TCNT2` against `OCR2A` will be carried out.   You cannot use any force compare modes in anything but NORMAL and CTC modes.
+| FORCE_COMPARE_MATCH_A | A forced compare of `TCNT2` against `OCR2A` will be carried out.  You cannot use any force compare modes in anything but NORMAL and CTC modes.
 | FORCE_COMPARE_MATCH_B | A forced compare of `TCNT2` against `OCR2B` will be carried out.   You cannot use any force compare modes in anything but NORMAL and CTC modes.
 
 |===
 
-While the default for this parameter is to have no force compares enabled, `FORCE_COMPARE_NONE`, you can be explicit if you wish, and call the `initialise()` function as follows:
+You call the `forceCompare()` function as follows:
 
 [source, cpp]
 ----
-Timer2::initialise(Timer2::MODE_FAST_PWM_255,
-                   Timer2::CLK_PRESCALE_64,
-                   Timer2::OC2X_DISCONNECTED,
-                   Timer2::INT_COMPARE_MATCH_A |
-                        Timer2::INT_COMPARE_MATCH_B,
-                   Timer2::FORCE_COMPARE_NONE               <1>
-                  );
+Timer2::forceCompare(Timer2::FORCE_COMPARE_A);             <1>
 ----
-<1> The force compare parameter in action showing that we are not requiring a force compare as soon as the timer is initialised.
+<1> The force compare parameter in action showing that we are forcing a comparison between `TCNT2` and `OCR2A`. If they are equal at that point, and the timer is in the correct mode, then pin `OC2A` (Arduino pin `D11`) will be toggled, cleared or set depending on how the timer was initialised. 
 
-You can, of course, initialise the timer as above, and then, in your code at any time, simply set one or other of the `FOC2A` and `FOC2B` bits in register `TCCR2B` to force a compare to affect the output pins at that point, but remember, no interrupts will fire for the compare match in that case.
