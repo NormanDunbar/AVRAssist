@@ -151,15 +151,6 @@ namespace AVRAssist {
                 return;
             }
 
-            // Can't use FORCE COMPARE in anything but NORMAL and CTC modes.
-            // Also, nothing will happen if we are running in OCOX_DISCONNECTED mode.
-            // No interrupts will fire at any time even if enabled. 
-            // Only pins D5/D6 (OC0A/OC0B) will be affected. They will be cleared/set/toggled 
-            // according to the setting in compareMatch.
-            if ((timerMode != MODE_NORMAL && timerMode != MODE_CTC_OCR0A)) {
-                return;
-            }
-
             // Do it. This will set/clear/toggle pin OC0A or OC0B if TCNT0 = OCR0A or OCR0B
             // depending on which pin is being forced.
             TCCR0B |= forcePin;
