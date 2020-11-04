@@ -14,14 +14,14 @@
 #endif
 
 namespace AVRAssist {
-    
+
     //----------------------------------------------------------------------
     // Analogue to Digital Converter setup.
     //----------------------------------------------------------------------
     namespace Adc {
-        
+
         //------------------------------------------------------------------
-        // Where do we get our reference voltage from? Either internal 1.1V, 
+        // Where do we get our reference voltage from? Either internal 1.1V,
         // internal AVCC or external on AREF.
         //------------------------------------------------------------------
         enum reference_t : uint8_t {
@@ -29,7 +29,7 @@ namespace AVRAssist {
             REFV_AVCC = (1 << REFS0),   // AVCC pin has the reference voltage
             REFV_BANDGAP = ((1 << REFS1) | (1 << REFS0))    // Bandgap 1.1V
         };
-        
+
         //------------------------------------------------------------------
         // Where do we get our sampled voltage from? Either pin AIN1 or any
         // of the ADC channels 0 through 7, but not the internal channel 8.
@@ -47,7 +47,7 @@ namespace AVRAssist {
             SAMPLE_BANDGAP = ((1 << MUX3) | (1 << MUX2) | (1 << MUX1)),
             SAMPLE_GND = SAMPLE_BANDGAP | (1 << MUX0)
         };
-        
+
         //------------------------------------------------------------------
         // Do we require interrupts?
         //------------------------------------------------------------------
@@ -77,7 +77,7 @@ namespace AVRAssist {
             ADC_PRESCALE_64,        // Prescaler = divide by 64
             ADC_PRESCALE_128        // Prescaler = divide by 128
         };
-        
+
         //------------------------------------------------------------------
         // Autotrigger enablement.
         //------------------------------------------------------------------
@@ -85,7 +85,7 @@ namespace AVRAssist {
             AUTO_DISABLED = 0,
             AUTO_ENABLED = (1 << ADATE)
         };
-        
+
         //------------------------------------------------------------------
         // Autotrigger sources.
         //------------------------------------------------------------------
@@ -99,13 +99,13 @@ namespace AVRAssist {
             AUTOI_TIMER1_OVERFLOW,  // Timer/counter 1 overflow
             AUTO_TIMER1_CAPTURE     // Timer/counter 1 input capture
         };
-        
-        
+
+
         //------------------------------------------------------------------
         // Initialise the ADC.
         //------------------------------------------------------------------
-        void initialise(const reference_t referenceSource, 
-                        const sample_t sampleSource, 
+        void initialise(const reference_t referenceSource,
+                        const sample_t sampleSource,
                         const interrupt_t interruptMode = INT_DISABLED,
                         const alignment_t alignment = ALIGN_RIGHT,
                         const prescaler_t prescaler = ADC_PRESCALE_128,
@@ -117,14 +117,14 @@ namespace AVRAssist {
             // Validation...
             // Make sure nobody OR'd together the reference voltage sources.
             //--------------------------------------------------------------
-            if (referenceSource != REFV_AREF && 
-                referenceSource != REFV_AVCC && 
+            if (referenceSource != REFV_AREF &&
+                referenceSource != REFV_AVCC &&
                 referenceSource != REFV_BANDGAP) {
                     return;
             }
-            
+
             //--------------------------------------------------------------
-            // Cannot use ADC8 unless REFV_BANDGAP is also selected and 
+            // Cannot use ADC8 unless REFV_BANDGAP is also selected and
             // AUTO_DISABLE is also selected.
             //--------------------------------------------------------------
             if (sampleSource == SAMPLE_ADC8 &&
@@ -138,30 +138,30 @@ namespace AVRAssist {
             // SAMPLE_ADC8 (0b1000) and SAMPLE_BANDGAP (0b1110).
             //--------------------------------------------------------------
             if (sampleSource > SAMPLE_GND ||
-                (sampleSource < SAMPLE_BANDGAP && 
+                (sampleSource < SAMPLE_BANDGAP &&
                  sampleSource > SAMPLE_ADC8)) {
                     return;
             }
-           
-            
+
+
             //--------------------------------------------------------------
             // Initial enabling of the ADC.
             // * Turn on power, just in case;
             // * Set reference, alignment and source;
             // * Enable auto trigger source, if required;
             // * Power off the digital input buffer, as appropriate;
-            // * Set prescaler, interrupt, auto trigger if required, and 
+            // * Set prescaler, interrupt, auto trigger if required, and
             //   enable the ADC.
             //--------------------------------------------------------------
             PRR &= ~(1 << PRADC);   // Power enabled to the ADC.
             ADMUX = referenceSource | alignment | sampleSource;
-            ADCSRB &= ~(1 << ACME); // Preserve Analogue Comparator bit.
-            
+            ADCSRB &= (1 << ACME);  // Preserve Analogue Comparator bit.
+
             // Auto-triggering? Set the auto-trigger source.
             if (autoTriggerMode == AUTO_ENABLED) {
                 ADCSRB |= autoTriggerSource;
             }
-            
+
             // Power off the digital input buffer.
             if (sampleSource <= SAMPLE_ADC5) {
                 DIDR0 |= (1 << sampleSource);
@@ -170,8 +170,8 @@ namespace AVRAssist {
             // Last, before starting it, enable it all.
             ADCSRA = (1 << ADEN) | prescaler | interruptMode | autoTriggerMode;
         }
-        
-        
+
+
         //--------------------------------------------------------------
         // ADC is enabled, execute a start conversion on demand. This is
         // require if using AUTO_DISABLED or AUTO_FREE_RUNNING.
@@ -181,6 +181,6 @@ namespace AVRAssist {
         }
 
     } // End of Adc namespace.
-  
+
 }  // End of AVRAssist namespace.
 #endif // __ADC__
