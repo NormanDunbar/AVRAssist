@@ -155,7 +155,7 @@ namespace AVRAssist {
             //--------------------------------------------------------------
             PRR &= ~(1 << PRADC);   // Power enabled to the ADC.
             ADMUX = referenceSource | alignment | sampleSource;
-            ADCSRB &= ~(1 << ACME); // Preserve Analogue Comparator bit.
+            ADCSRB &= (1 << ACME);  // Preserve Analogue Comparator bit.
             
             // Auto-triggering? Set the auto-trigger source.
             if (autoTriggerMode == AUTO_ENABLED) {
